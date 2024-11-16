@@ -1,12 +1,13 @@
 <?php 
-include './config/conexion.php';
+include 'conexion.php';
 header('Content-Type: application/json');
 
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+$action = isset($_GET['action']) ? $_GET['action'] : '';
+
+if ($action === 'totales') {
     $response = [
         'total_usuarios' => 0,
-        'total_deudores' => 0,
-        'usuarios' => []
+        'total_deudores' => 0
     ];
 
     // Obtener total de usuarios
@@ -21,14 +22,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $row = $result->fetch_assoc();
     $response['total_deudores'] = $row['total'];
 
-    // Obtener lista de usuarios
+    echo json_encode($response);
+    exit();
+}
+
+if ($action === 'usuarios') {
+    $usuarios = [];
     $sql = "SELECT * FROM usuarios";
     $result = $conn->query($sql);
     while ($usuario = $result->fetch_assoc()) {
-        $response['usuarios'][] = $usuario;
+        $usuarios[] = $usuario;
     }
+    echo json_encode($usuarios);
+    exit();
+}
 
-    echo json_encode($response);
+if ($action === 'deudores') {
+    $deudores = [];
+    $sql = "SELECT * FROM usuarios WHERE deuda > 0";
+    $result = $conn->query($sql);
+    while ($deudor = $result->fetch_assoc()) {
+        $deudores[] = $deudor;
+    }
+    echo json_encode($deudores);
     exit();
 }
 
