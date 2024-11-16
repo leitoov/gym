@@ -2,11 +2,11 @@
 session_start();
 include './config/conexion.php'; // Incluye la conexión a la base de datos
 
-// Verificar si el administrador está autenticado
+/* Verificar si el administrador está autenticado
 if (!isset($_SESSION['admin_id'])) {
     header('Location: ./login.php');
     exit();
-}
+}*/
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cambiar_contrasena'])) {
     $admin_id = $_SESSION['admin_id'];
