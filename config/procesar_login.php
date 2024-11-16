@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Autenticación exitosa: almacenar información en la sesión
             $_SESSION['admin_id'] = $admin['id_admin'];
             $_SESSION['nombre_usuario'] = $admin['nombre_usuario'];
-            header('Location: index.php'); // Redirigir al panel de administración
+            header('Location: ./index.php'); // Redirigir al panel de administración
         } else {
             echo "<div class='alert alert-danger'>Contraseña incorrecta.</div>";
         }

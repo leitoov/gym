@@ -142,7 +142,7 @@ if (!isset($_SESSION['admin_id'])) {
 
         // Cargar usuarios en la tabla
         $.ajax({
-            url: 'api_usuarios.php',
+            url: 'apis/api_usuarios.php',
             method: 'GET',
             dataType: 'json',
             success: function(response) {
@@ -175,38 +175,3 @@ if (!isset($_SESSION['admin_id'])) {
 </body>
 </html>
 
-<?php
-// api_usuarios.php
-include 'conexion.php';
-header('Content-Type: application/json');
-
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    $response = [
-        'total_usuarios' => 0,
-        'total_deudores' => 0,
-        'usuarios' => []
-    ];
-
-    // Obtener total de usuarios
-    $sql = "SELECT COUNT(*) as total FROM usuarios";
-    $result = $conn->query($sql);
-    $row = $result->fetch_assoc();
-    $response['total_usuarios'] = $row['total'];
-
-    // Obtener total de deudores
-    $sql = "SELECT COUNT(*) as total FROM usuarios WHERE deuda > 0";
-    $result = $conn->query($sql);
-    $row = $result->fetch_assoc();
-    $response['total_deudores'] = $row['total'];
-
-    // Obtener lista de usuarios
-    $sql = "SELECT * FROM usuarios";
-    $result = $conn->query($sql);
-    while ($usuario = $result->fetch_assoc()) {
-        $response['usuarios'][] = $usuario;
-    }
-
-    echo json_encode($response);
-    exit();
-}
-?>
