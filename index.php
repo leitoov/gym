@@ -129,7 +129,7 @@ if (!isset($_SESSION['admin_id'])) {
     // Cargar el total de usuarios y deudores con AJAX
     $(document).ready(function() {
         $.ajax({
-            url: 'api_usuarios.php',
+            url: 'apis/api_usuarios.php',
             method: 'GET',
             success: function(response) {
                 let totalUsuarios = response.total_usuarios;
