@@ -30,8 +30,35 @@ function ejecutarConsulta($sql, $conn) {
 
 // Lógica de las acciones disponibles
 if ($action === 'usuarios') {
-    // Obtener todos los usuarios
+    $order_by = isset($_GET['order_by']) ? $_GET['order_by'] : '';
+    $filter_by = isset($_GET['filter_by']) ? $_GET['filter_by'] : '';
+    $filter_value = isset($_GET['filter_value']) ? $_GET['filter_value'] : '';
+
+    // Iniciar la consulta base
     $sql_usuarios = "SELECT * FROM usuarios";
+
+    // Aplicar filtro si corresponde
+    if ($filter_by && $filter_value) {
+        if ($filter_by === 'fecha_vencimiento') {
+            $sql_usuarios .= " WHERE fecha_vencimiento = '$filter_value'";
+        } elseif ($filter_by === 'deuda') {
+            $sql_usuarios .= " WHERE deuda >= $filter_value";
+        }
+    }
+
+    // Aplicar ordenamiento si corresponde
+    if ($order_by) {
+        if ($order_by === 'fecha_vencimiento_asc') {
+            $sql_usuarios .= " ORDER BY fecha_vencimiento ASC";
+        } elseif ($order_by === 'fecha_vencimiento_desc') {
+            $sql_usuarios .= " ORDER BY fecha_vencimiento DESC";
+        } elseif ($order_by === 'deuda_asc') {
+            $sql_usuarios .= " ORDER BY deuda ASC";
+        } elseif ($order_by === 'deuda_desc') {
+            $sql_usuarios .= " ORDER BY deuda DESC";
+        }
+    }
+
     $usuarios = ejecutarConsulta($sql_usuarios, $conn);
     
     if (isset($usuarios['error'])) {
