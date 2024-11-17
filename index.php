@@ -105,12 +105,20 @@ if (!isset($_SESSION['admin_id'])) {
         $.ajax({
             url: 'api_usuarios.php?action=totales',
             method: 'GET',
+            dataType: 'json', // Asegúrate de especificar el tipo de dato
             success: function(response) {
-                let totalUsuarios = response.total_usuarios;
-                let totalDeudores = response.total_deudores;
-                
-                $('#totalUsuarios').text(totalUsuarios + ' Usuarios');
-                $('#totalDeudores').text(totalDeudores + ' Deudores');
+                if (response.status === 'success') {
+                    let totalUsuarios = response.total_usuarios;
+                    let totalDeudores = response.total_deudores;
+
+                    $('#totalUsuarios').text(totalUsuarios + ' Usuarios');
+                    $('#totalDeudores').text(totalDeudores + ' Deudores');
+                } else {
+                    console.error('Error en la respuesta de la API:', response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error en la solicitud AJAX:', status, error);
             }
         });
     });
