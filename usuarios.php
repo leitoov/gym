@@ -78,31 +78,6 @@ if (!isset($_SESSION['admin_id'])) {
         <a href="index.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver al Panel</a>
         <a href="#" class="btn btn-success" data-toggle="modal" data-target="#añadirUsuarioModal"><i class="fas fa-user-plus"></i> Añadir Usuario</a>
     </div>
-
-    <!-- Filtros y Ordenamientos -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div class="form-inline">
-            <label for="orderBySelect" class="mr-2">Ordenar por:</label>
-            <select id="orderBySelect" class="form-control mr-3">
-                <option value="">Seleccione...</option>
-                <option value="fecha_vencimiento_asc">Fecha de Vencimiento (Ascendente)</option>
-                <option value="fecha_vencimiento_desc">Fecha de Vencimiento (Descendente)</option>
-                <option value="deuda_asc">Deuda (Ascendente)</option>
-                <option value="deuda_desc">Deuda (Descendente)</option>
-            </select>
-
-            <label for="filterBySelect" class="mr-2">Filtrar por:</label>
-            <select id="filterBySelect" class="form-control mr-3">
-                <option value="">Seleccione...</option>
-                <option value="deuda">Deuda Mínima</option>
-                <option value="fecha_vencimiento">Fecha de Vencimiento</option>
-            </select>
-
-            <input type="text" id="filterValue" class="form-control mr-2" placeholder="Valor del Filtro">
-            <button id="applyFilterBtn" class="btn btn-primary">Aplicar</button>
-        </div>
-    </div>
-
     <div id="usuariosContainer">
         <!-- Los usuarios se cargarán dinámicamente usando AJAX -->
     </div>
