@@ -200,6 +200,10 @@ if (!isset($_SESSION['admin_id'])) {
 <script>
     // Cargar usuarios en el contenedor
     $(document).ready(function() {
+        cargarUsuarios();
+    });
+
+    function cargarUsuarios() {
         $.ajax({
             url: 'api_usuarios.php?action=usuarios',
             method: 'GET',
@@ -237,11 +241,10 @@ if (!isset($_SESSION['admin_id'])) {
                 console.error('Error en la solicitud AJAX:', status, error);
             }
         });
-    });
+    }
 
     // Abrir el modal de edición de usuario
     function abrirModalEdicion(id_usuario) {
-        // Obtener los datos del usuario y mostrarlos en el modal
         $.ajax({
             url: 'api_usuarios.php?action=usuario&id=' + id_usuario,
             method: 'GET',
@@ -281,7 +284,7 @@ if (!isset($_SESSION['admin_id'])) {
                 if (response.status === 'success') {
                     $('#editarUsuarioModal').modal('hide');
                     Swal.fire('Éxito', 'Usuario actualizado correctamente', 'success').then(() => {
-                        location.reload();
+                        cargarUsuarios(); // Recargar los usuarios después de actualizar
                     });
                 } else {
                     Swal.fire('Error', response.message, 'error');
@@ -293,7 +296,6 @@ if (!isset($_SESSION['admin_id'])) {
             }
         });
     });
-
 
     // Guardar el nuevo usuario
     $('#guardarNuevoUsuario').click(function() {
@@ -308,7 +310,7 @@ if (!isset($_SESSION['admin_id'])) {
                 if (response.status === 'success') {
                     $('#añadirUsuarioModal').modal('hide');
                     Swal.fire('Éxito', 'Usuario añadido correctamente', 'success').then(() => {
-                        location.reload(); // Recarga la página para mostrar los nuevos usuarios
+                        cargarUsuarios(); // Recargar los usuarios después de añadir
                     });
                 } else {
                     Swal.fire('Error', response.message, 'error');
