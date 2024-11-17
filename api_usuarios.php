@@ -1,8 +1,11 @@
 <?php 
-include 'conexion.php';
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+include './config/conexion.php';
 header('Content-Type: application/json');
 
-// Acción solicitada (totales, usuarios, deudores, etc.)
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 
 // Respuesta por defecto para errores
