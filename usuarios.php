@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'conexion.php'; // Incluye la conexión a la base de datos
+include 'config/conexion.php'; // Incluye la conexión a la base de datos
 
 // Verificar si el administrador está autenticado
 if (!isset($_SESSION['admin_id'])) {
@@ -53,28 +53,38 @@ if (!isset($_SESSION['admin_id'])) {
             method: 'GET',
             dataType: 'json',
             success: function(response) {
-                let usuarios = response;
-                let tablaUsuarios = '';
+                // Verificar si la respuesta fue exitosa
+                if (response.status === 'success') {
+                    let usuarios = response.usuarios;
+                    let tablaUsuarios = '';
 
-                usuarios.forEach(function(usuario) {
-                    tablaUsuarios += '<tr>';
-                    tablaUsuarios += '<td>' + usuario.id_usuario + '</td>';
-                    tablaUsuarios += '<td>' + usuario.nombre + '</td>';
-                    tablaUsuarios += '<td>' + usuario.apellido + '</td>';
-                    tablaUsuarios += '<td>' + usuario.telefono + '</td>';
-                    tablaUsuarios += '<td>' + usuario.email + '</td>';
-                    tablaUsuarios += '<td>' + usuario.plan + '</td>';
-                    tablaUsuarios += '<td>' + usuario.fecha_vencimiento + '</td>';
-                    tablaUsuarios += '<td>AR$ ' + usuario.deuda + '</td>';
-                    tablaUsuarios += '<td>' + usuario.avisos + '</td>';
-                    tablaUsuarios += '<td>';
-                    tablaUsuarios += '<a href="#" onclick="abrirModalEdicion(' + usuario.id_usuario + ')" class="btn btn-warning btn-custom"><i class="fas fa-edit"></i> Editar</a> ';
-                    tablaUsuarios += '<a href="ver_historial.php?id=' + usuario.id_usuario + '" class="btn btn-info btn-custom"><i class="fas fa-history"></i> Ver Historial</a>';
-                    tablaUsuarios += '</td>';
-                    tablaUsuarios += '</tr>';
-                });
+                    // Iterar sobre el array de usuarios para construir las filas de la tabla
+                    usuarios.forEach(function(usuario) {
+                        tablaUsuarios += '<tr>';
+                        tablaUsuarios += '<td>' + usuario.id_usuario + '</td>';
+                        tablaUsuarios += '<td>' + usuario.nombre + '</td>';
+                        tablaUsuarios += '<td>' + usuario.apellido + '</td>';
+                        tablaUsuarios += '<td>' + usuario.telefono + '</td>';
+                        tablaUsuarios += '<td>' + usuario.email + '</td>';
+                        tablaUsuarios += '<td>' + usuario.plan + '</td>';
+                        tablaUsuarios += '<td>' + usuario.fecha_vencimiento + '</td>';
+                        tablaUsuarios += '<td>AR$ ' + usuario.deuda + '</td>';
+                        tablaUsuarios += '<td>' + usuario.avisos + '</td>';
+                        tablaUsuarios += '<td>';
+                        tablaUsuarios += '<a href="#" onclick="abrirModalEdicion(' + usuario.id_usuario + ')" class="btn btn-warning btn-custom"><i class="fas fa-edit"></i> Editar</a> ';
+                        tablaUsuarios += '<a href="ver_historial.php?id=' + usuario.id_usuario + '" class="btn btn-info btn-custom"><i class="fas fa-history"></i> Ver Historial</a>';
+                        tablaUsuarios += '</td>';
+                        tablaUsuarios += '</tr>';
+                    });
 
-                $('#tablaUsuarios').html(tablaUsuarios);
+                    // Añadir las filas a la tabla
+                    $('#tablaUsuarios').html(tablaUsuarios);
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error en la solicitud AJAX:', status, error);
             }
         });
     });
