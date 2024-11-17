@@ -113,6 +113,16 @@ if ($action === 'usuario' && $id !== null) {
 }
 
 if ($action === 'actualizar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Verificar si los parámetros requeridos existen
+    $required_fields = ['id_usuario', 'nombre', 'apellido', 'telefono', 'email', 'plan', 'fecha_vencimiento', 'deuda'];
+    foreach ($required_fields as $field) {
+        if (!isset($_POST[$field]) || empty(trim($_POST[$field]))) {
+            $response['message'] = "Falta el campo requerido: $field";
+            echo json_encode($response);
+            exit();
+        }
+    }
+
     // Actualizar usuario
     $id_usuario = intval($_POST['id_usuario']);
     $nombre = $conn->real_escape_string($_POST['nombre']);

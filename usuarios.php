@@ -294,6 +294,7 @@ if (!isset($_SESSION['admin_id'])) {
         });
     });
 
+
     // Guardar el nuevo usuario
     $('#guardarNuevoUsuario').click(function() {
         let formData = $('#añadirUsuarioForm').serialize();
