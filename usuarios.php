@@ -76,10 +76,64 @@ if (!isset($_SESSION['admin_id'])) {
     <h2 class="text-center mb-4">Usuarios Registrados</h2>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <a href="index.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver al Panel</a>
-        <a href="#" class="btn btn-success"><i class="fas fa-user-plus"></i> Añadir Usuario</a>
+        <a href="#" class="btn btn-success" data-toggle="modal" data-target="#añadirUsuarioModal"><i class="fas fa-user-plus"></i> Añadir Usuario</a>
     </div>
     <div id="usuariosContainer">
         <!-- Los usuarios se cargarán dinámicamente usando AJAX -->
+    </div>
+</div>
+
+<!-- Modal para añadir usuario -->
+<div class="modal fade" id="añadirUsuarioModal" tabindex="-1" role="dialog" aria-labelledby="añadirUsuarioLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="añadirUsuarioLabel">Añadir Usuario</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="añadirUsuarioForm">
+                    <div class="form-group">
+                        <label for="añadirNombre">Nombre</label>
+                        <input type="text" class="form-control" id="añadirNombre" name="nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="añadirApellido">Apellido</label>
+                        <input type="text" class="form-control" id="añadirApellido" name="apellido" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="añadirTelefono">Teléfono</label>
+                        <input type="text" class="form-control" id="añadirTelefono" name="telefono" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="añadirEmail">Correo Electrónico</label>
+                        <input type="email" class="form-control" id="añadirEmail" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="añadirPlan">Plan</label>
+                        <select class="form-control" id="añadirPlan" name="plan" required>
+                            <option value="Básico">Básico</option>
+                            <option value="Premium">Premium</option>
+                            <option value="VIP">VIP</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="añadirFechaVencimiento">Fecha de Vencimiento</label>
+                        <input type="date" class="form-control" id="añadirFechaVencimiento" name="fecha_vencimiento" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="añadirDeuda">Deuda (AR$)</label>
+                        <input type="number" class="form-control" id="añadirDeuda" name="deuda" step="0.01" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="guardarNuevoUsuario">Guardar Usuario</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -142,6 +196,7 @@ if (!isset($_SESSION['admin_id'])) {
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@1.16.1/dist/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.26/dist/sweetalert2.all.min.js"></script>
+
 <script>
     // Cargar usuarios en el contenedor
     $(document).ready(function() {
@@ -164,7 +219,6 @@ if (!isset($_SESSION['admin_id'])) {
                         usuariosContainer += '<p><strong>Plan:</strong> ' + usuario.plan + '</p>';
                         usuariosContainer += '<p><strong>Fecha de Vencimiento:</strong> ' + usuario.fecha_vencimiento + '</p>';
                         usuariosContainer += '<p><strong>Deuda:</strong> AR$ ' + usuario.deuda + '</p>';
-                        usuariosContainer += '<p><strong>Avisos Enviados:</strong> ' + usuario.avisos + '</p>';
                         usuariosContainer += '</div>';
                         usuariosContainer += '<div class="user-actions">';
                         usuariosContainer += '<button onclick="abrirModalEdicion(' + usuario.id_usuario + ')" class="btn btn-warning btn-custom"><i class="fas fa-edit"></i> Editar</button>';
@@ -235,6 +289,33 @@ if (!isset($_SESSION['admin_id'])) {
             },
             error: function(xhr, status, error) {
                 console.error('Error en la solicitud AJAX:', status, error);
+                Swal.fire('Error', 'Hubo un problema al actualizar el usuario', 'error');
+            }
+        });
+    });
+
+    // Guardar el nuevo usuario
+    $('#guardarNuevoUsuario').click(function() {
+        let formData = $('#añadirUsuarioForm').serialize();
+
+        $.ajax({
+            url: 'api_usuarios.php?action=añadir',
+            method: 'POST',
+            data: formData,
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    $('#añadirUsuarioModal').modal('hide');
+                    Swal.fire('Éxito', 'Usuario añadido correctamente', 'success').then(() => {
+                        location.reload(); // Recarga la página para mostrar los nuevos usuarios
+                    });
+                } else {
+                    Swal.fire('Error', response.message, 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error en la solicitud AJAX:', status, error);
+                Swal.fire('Error', 'Hubo un problema al añadir el usuario', 'error');
             }
         });
     });
