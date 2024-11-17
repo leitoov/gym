@@ -18,32 +18,69 @@ if (!isset($_SESSION['admin_id'])) {
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.26/dist/sweetalert2.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            background: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        .user-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+            transition: all 0.3s;
+            background-color: #ffffff;
+        }
+
+        .user-card:hover {
+            transform: scale(1.02);
+        }
+
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-details {
+            flex: 1;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .user-info {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .user-actions {
+                margin-top: 15px;
+            }
+        }
+    </style>
 </head>
 <body>
 <div class="container mt-5">
-    <h2 class="text-center">Usuarios Registrados</h2>
-    <div class="text-right mb-3">
+    <h2 class="text-center mb-4">Usuarios Registrados</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
         <a href="index.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver al Panel</a>
+        <a href="#" class="btn btn-success"><i class="fas fa-user-plus"></i> Añadir Usuario</a>
     </div>
-    <table class="table table-bordered">
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Apellido</th>
-            <th>Teléfono</th>
-            <th>Correo Electrónico</th>
-            <th>Plan</th>
-            <th>Fecha de Vencimiento</th>
-            <th>Deuda (AR$)</th>
-            <th>Avisos Enviados</th>
-            <th>Acciones</th>
-        </tr>
-        </thead>
-        <tbody id="tablaUsuarios">
-            <!-- Los usuarios se cargarán dinámicamente usando AJAX -->
-        </tbody>
-    </table>
+    <div id="usuariosContainer">
+        <!-- Los usuarios se cargarán dinámicamente usando AJAX -->
+    </div>
 </div>
 
 <!-- Modal para editar usuario -->
@@ -76,7 +113,11 @@ if (!isset($_SESSION['admin_id'])) {
                     </div>
                     <div class="form-group">
                         <label for="editarPlan">Plan</label>
-                        <input type="text" class="form-control" id="editarPlan" name="plan" required>
+                        <select class="form-control" id="editarPlan" name="plan" required>
+                            <option value="Básico">Básico</option>
+                            <option value="Premium">Premium</option>
+                            <option value="VIP">VIP</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="editarFechaVencimiento">Fecha de Vencimiento</label>
@@ -102,7 +143,7 @@ if (!isset($_SESSION['admin_id'])) {
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.26/dist/sweetalert2.all.min.js"></script>
 <script>
-    // Cargar usuarios en la tabla
+    // Cargar usuarios en el contenedor
     $(document).ready(function() {
         $.ajax({
             url: 'api_usuarios.php?action=usuarios',
@@ -111,29 +152,31 @@ if (!isset($_SESSION['admin_id'])) {
             success: function(response) {
                 if (response.status === 'success') {
                     let usuarios = response.usuarios;
-                    let tablaUsuarios = '';
+                    let usuariosContainer = '';
 
                     usuarios.forEach(function(usuario) {
-                        tablaUsuarios += '<tr>';
-                        tablaUsuarios += '<td>' + usuario.id_usuario + '</td>';
-                        tablaUsuarios += '<td>' + usuario.nombre + '</td>';
-                        tablaUsuarios += '<td>' + usuario.apellido + '</td>';
-                        tablaUsuarios += '<td>' + usuario.telefono + '</td>';
-                        tablaUsuarios += '<td>' + usuario.email + '</td>';
-                        tablaUsuarios += '<td>' + usuario.plan + '</td>';
-                        tablaUsuarios += '<td>' + usuario.fecha_vencimiento + '</td>';
-                        tablaUsuarios += '<td>AR$ ' + usuario.deuda + '</td>';
-                        tablaUsuarios += '<td>' + usuario.avisos + '</td>';
-                        tablaUsuarios += '<td>';
-                        tablaUsuarios += '<a href="#" onclick="abrirModalEdicion(' + usuario.id_usuario + ')" class="btn btn-warning btn-custom"><i class="fas fa-edit"></i> Editar</a> ';
-                        tablaUsuarios += '<a href="ver_historial.php?id=' + usuario.id_usuario + '" class="btn btn-info btn-custom"><i class="fas fa-history"></i> Ver Historial</a>';
-                        tablaUsuarios += '</td>';
-                        tablaUsuarios += '</tr>';
+                        usuariosContainer += '<div class="user-card">';
+                        usuariosContainer += '<div class="user-info">';
+                        usuariosContainer += '<div class="user-details">';
+                        usuariosContainer += '<h5>' + usuario.nombre + ' ' + usuario.apellido + '</h5>';
+                        usuariosContainer += '<p><strong>Teléfono:</strong> ' + usuario.telefono + '</p>';
+                        usuariosContainer += '<p><strong>Correo Electrónico:</strong> ' + usuario.email + '</p>';
+                        usuariosContainer += '<p><strong>Plan:</strong> ' + usuario.plan + '</p>';
+                        usuariosContainer += '<p><strong>Fecha de Vencimiento:</strong> ' + usuario.fecha_vencimiento + '</p>';
+                        usuariosContainer += '<p><strong>Deuda:</strong> AR$ ' + usuario.deuda + '</p>';
+                        usuariosContainer += '<p><strong>Avisos Enviados:</strong> ' + usuario.avisos + '</p>';
+                        usuariosContainer += '</div>';
+                        usuariosContainer += '<div class="user-actions">';
+                        usuariosContainer += '<button onclick="abrirModalEdicion(' + usuario.id_usuario + ')" class="btn btn-warning btn-custom"><i class="fas fa-edit"></i> Editar</button>';
+                        usuariosContainer += '<a href="ver_historial.php?id=' + usuario.id_usuario + '" class="btn btn-info btn-custom"><i class="fas fa-history"></i> Ver Historial</a>';
+                        usuariosContainer += '</div>';
+                        usuariosContainer += '</div>';
+                        usuariosContainer += '</div>';
                     });
 
-                    $('#tablaUsuarios').html(tablaUsuarios);
+                    $('#usuariosContainer').html(usuariosContainer);
                 } else {
-                    alert('Error: ' + response.message);
+                    Swal.fire('Error', response.message, 'error');
                 }
             },
             error: function(xhr, status, error) {
@@ -183,7 +226,7 @@ if (!isset($_SESSION['admin_id'])) {
             success: function(response) {
                 if (response.status === 'success') {
                     $('#editarUsuarioModal').modal('hide');
-                    Swal.fire('Exito', 'Usuario actualizado correctamente', 'success').then(() => {
+                    Swal.fire('Éxito', 'Usuario actualizado correctamente', 'success').then(() => {
                         location.reload();
                     });
                 } else {
