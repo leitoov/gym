@@ -2,11 +2,16 @@
 // Configuración para mostrar todos los errores de PHP
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/error_log.log'); // Crear el archivo error_log.log en el mismo directorio que la API
 error_reporting(E_ALL);
 
 // Incluir la conexión a la base de datos
 include './config/conexion.php';
 header('Content-Type: application/json');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
 
 // Validar el parámetro "action" y otros que se necesiten
 $action = isset($_GET['action']) ? $_GET['action'] : '';
@@ -17,6 +22,13 @@ $response = [
     'status' => 'error',
     'message' => 'Acción no válida o falta de parámetros.'
 ];
+
+// Verificar conexión con la base de datos
+if (!$conn) {
+    $response['message'] = 'Error en la conexión a la base de datos: ' . mysqli_connect_error();
+    echo json_encode($response);
+    die();
+}
 
 // Función para ejecutar una consulta y retornar los resultados
 function ejecutarConsulta($sql, $conn) {
@@ -66,43 +78,53 @@ switch ($action) {
         exit();
 
     case 'usuarios':
-        error_log("Ejecutando acción 'usuarios'");
-        // Obtener todos los usuarios
-        $sql_usuarios = "SELECT * FROM usuarios";
-        $usuarios = ejecutarConsulta($sql_usuarios, $conn);
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            error_log("Ejecutando acción 'usuarios'");
+            // Obtener todos los usuarios
+            $sql_usuarios = "SELECT * FROM usuarios";
+            $usuarios = ejecutarConsulta($sql_usuarios, $conn);
 
-        if (isset($usuarios['error'])) {
-            $response['message'] = 'Error al obtener usuarios: ' . $usuarios['error'];
+            if (isset($usuarios['error'])) {
+                $response['message'] = 'Error al obtener usuarios: ' . $usuarios['error'];
+            } else {
+                $response = [
+                    'status' => 'success',
+                    'usuarios' => $usuarios
+                ];
+            }
+
+            echo json_encode($response);
+            exit();
         } else {
-            $response = [
-                'status' => 'success',
-                'usuarios' => $usuarios
-            ];
+            error_log("Método HTTP incorrecto para la acción 'usuarios'");
         }
-
-        echo json_encode($response);
-        exit();
+        break;
 
     case 'deudores':
-        error_log("Ejecutando acción 'deudores'");
-        // Obtener usuarios con deudas
-        $sql_deudores = "SELECT * FROM usuarios WHERE deuda > 0";
-        $deudores = ejecutarConsulta($sql_deudores, $conn);
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            error_log("Ejecutando acción 'deudores'");
+            // Obtener usuarios con deudas
+            $sql_deudores = "SELECT * FROM usuarios WHERE deuda > 0";
+            $deudores = ejecutarConsulta($sql_deudores, $conn);
 
-        if (isset($deudores['error'])) {
-            $response['message'] = 'Error al obtener deudores: ' . $deudores['error'];
+            if (isset($deudores['error'])) {
+                $response['message'] = 'Error al obtener deudores: ' . $deudores['error'];
+            } else {
+                $response = [
+                    'status' => 'success',
+                    'deudores' => $deudores
+                ];
+            }
+
+            echo json_encode($response);
+            exit();
         } else {
-            $response = [
-                'status' => 'success',
-                'deudores' => $deudores
-            ];
+            error_log("Método HTTP incorrecto para la acción 'deudores'");
         }
-
-        echo json_encode($response);
-        exit();
+        break;
 
     case 'usuario':
-        if ($id !== null) {
+        if ($id !== null && $_SERVER['REQUEST_METHOD'] === 'GET') {
             error_log("Ejecutando acción 'usuario' con ID: $id");
             // Obtener un usuario por su ID
             $sql_usuario = "SELECT * FROM usuarios WHERE id_usuario = $id";
@@ -118,12 +140,13 @@ switch ($action) {
             } else {
                 $response['message'] = 'Usuario no encontrado';
             }
-        } else {
-            error_log("ID no proporcionado para la acción 'usuario'");
-        }
 
-        echo json_encode($response);
-        exit();
+            echo json_encode($response);
+            exit();
+        } else {
+            error_log("ID no proporcionado o método HTTP incorrecto para la acción 'usuario'");
+        }
+        break;
 
     case 'actualizar':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
