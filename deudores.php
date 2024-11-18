@@ -146,7 +146,7 @@ if (!isset($_SESSION['admin_id'])) {
             if (result.isConfirmed) {
                 $.ajax({
                     url: 'api_usuarios.php?action=marcar_pagado',
-                    method: 'GET',
+                    method: 'POST',
                     data: { id: id_usuario },
                     dataType: 'json',
                     success: function(response) {
