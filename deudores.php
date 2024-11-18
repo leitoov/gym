@@ -148,8 +148,8 @@ if (!isset($_SESSION['admin_id'])) {
                 $.ajax({
                     url: 'api_usuarios.php?action=pago',
                     method: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({ id: id_usuario }),
+                    contentType: 'application/json', // Esto es importante para el formato JSON
+                    data: JSON.stringify({ id: id_usuario }), // Convertir a JSON
                     dataType: 'json',
                     success: function(response) {
                         if (response.status === 'success') {
