@@ -129,6 +129,7 @@ if (!isset($_SESSION['admin_id'])) {
             },
             error: function(xhr, status, error) {
                 console.error('Error en la solicitud AJAX:', status, error);
+                Swal.fire('Error', 'No se pudo cargar la lista de deudores. Por favor intenta nuevamente.', 'error');
             }
         });
     }
@@ -147,7 +148,8 @@ if (!isset($_SESSION['admin_id'])) {
                 $.ajax({
                     url: 'api_usuarios.php?action=pago',
                     method: 'POST',
-                    data: { id: id_usuario },
+                    contentType: 'application/json',
+                    data: JSON.stringify({ id: id_usuario }),
                     dataType: 'json',
                     success: function(response) {
                         if (response.status === 'success') {
