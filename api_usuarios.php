@@ -183,6 +183,23 @@ if ($action === 'anadir' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     exit();
 }
 
+if ($action === 'pago' && $id !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Marcar la deuda de un usuario como pagada
+    $sql_pagar = "UPDATE usuarios SET deuda = 0 WHERE id_usuario = $id";
+
+    if ($conn->query($sql_pagar) === TRUE) {
+        $response = [
+            'status' => 'success',
+            'message' => 'Deuda marcada como pagada'
+        ];
+    } else {
+        $response['message'] = 'Error al actualizar deuda: ' . $conn->error;
+    }
+
+    echo json_encode($response);
+    exit();
+}
+
 // En caso de acción inválida
 echo json_encode($response);
 exit();
