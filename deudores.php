@@ -85,6 +85,23 @@ if (!isset($_SESSION['admin_id'])) {
             margin-bottom: 20px;
             color: #adb5bd;
         }
+
+        /* Estilo para la lista de deudas */
+        .debt-list {
+            margin-top: 10px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .debt-item {
+            border-bottom: 1px solid #e0e0e0;
+            padding: 10px 0;
+        }
+
+        .debt-item:last-child {
+            border-bottom: none;
+        }
     </style>
 </head>
 <body>
@@ -138,15 +155,25 @@ if (!isset($_SESSION['admin_id'])) {
                             deudoresContainer += '<p><strong>Teléfono:</strong> ' + deudor.telefono + '</p>';
                             deudoresContainer += '<p><strong>Correo Electrónico:</strong> ' + deudor.email + '</p>';
                             deudoresContainer += '<p><strong>Plan:</strong> ' + deudor.plan + '</p>';
-                            deudoresContainer += '<p><strong>Fecha de Vencimiento:</strong> ' + deudor.fecha_vencimiento + '</p>';
-                            deudoresContainer += '<p><strong>Deuda:</strong> AR$ ' + deudor.deuda + '</p>';
-                            deudoresContainer += '</div>';
+
+                            // Mostrar las deudas del usuario
+                            deudoresContainer += '<div class="debt-list">';
+                            deudor.deudas.forEach(function(deuda) {
+                                deudoresContainer += '<div class="debt-item">';
+                                deudoresContainer += '<p><strong>Monto:</strong> AR$ ' + deuda.monto + '</p>';
+                                deudoresContainer += '<p><strong>Fecha de Generación:</strong> ' + deuda.fecha_generacion + '</p>';
+                                deudoresContainer += '<p><strong>Fecha de Vencimiento:</strong> ' + deuda.fecha_vencimiento + '</p>';
+                                deudoresContainer += '</div>';
+                            });
+                            deudoresContainer += '</div>'; // Cerrar la lista de deudas
+
+                            deudoresContainer += '</div>'; // Cerrar los detalles del usuario
                             deudoresContainer += '<div class="user-actions">';
                             deudoresContainer += '<a href="ver_historial.php?id=' + deudor.id_usuario + '" class="btn btn-info btn-custom"><i class="fas fa-history"></i> Ver Historial</a>';
                             deudoresContainer += '<button onclick="marcarComoPagado(' + deudor.id_usuario + ')" class="btn btn-success btn-custom"><i class="fas fa-check"></i> Marcar como Pagado</button>';
                             deudoresContainer += '</div>';
-                            deudoresContainer += '</div>';
-                            deudoresContainer += '</div>';
+                            deudoresContainer += '</div>'; // Cerrar la información del usuario
+                            deudoresContainer += '</div>'; // Cerrar la tarjeta del usuario
                         });
                     }
 
@@ -176,8 +203,8 @@ if (!isset($_SESSION['admin_id'])) {
                 $.ajax({
                     url: 'api_usuarios.php?action=pago',
                     method: 'POST',
-                    contentType: 'application/json', // Esto es importante para el formato JSON
-                    data: JSON.stringify({ id: id_usuario }), // Convertir a JSON
+                    contentType: 'application/json',
+                    data: JSON.stringify({ id: id_usuario }),
                     dataType: 'json',
                     success: function(response) {
                         if (response.status === 'success') {

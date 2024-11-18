@@ -66,16 +66,8 @@ switch ($action) {
                 error_log("Error al obtener el total de usuarios: " . json_encode($resultado_usuarios));
             }
 
-            // Obtener total de deudores (usuarios con deudas pendientes)
-            $sql_deudores = "
-                SELECT COUNT(*) as total
-                FROM usuarios u
-                WHERE EXISTS (
-                    SELECT 1
-                    FROM deudas d
-                    WHERE d.id_usuario = u.id_usuario AND d.estado = 'pendiente'
-                )
-            ";
+            // Obtener total de deudores
+            $sql_deudores = "SELECT COUNT(DISTINCT id_usuario) as total FROM deudas WHERE estado = 'pendiente'";
             $resultado_deudores = ejecutarConsulta($sql_deudores, $conn);
 
             if (isset($resultado_deudores[0])) {
@@ -117,16 +109,12 @@ switch ($action) {
     case 'deudores':
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             error_log("Ejecutando acción 'deudores'");
-            // Obtener usuarios con deudas activas (deudas con estado 'pendiente')
-            $sql_deudores = "
-                SELECT u.id_usuario, u.nombre, u.apellido, u.telefono, u.email, u.plan, u.fecha_vencimiento
-                FROM usuarios u
-                WHERE EXISTS (
-                    SELECT 1
-                    FROM deudas d
-                    WHERE d.id_usuario = u.id_usuario AND d.estado = 'pendiente'
-                )
-            ";
+            // Obtener usuarios con deudas pendientes y los detalles de cada deuda
+            $sql_deudores = "SELECT u.id_usuario, u.nombre, u.apellido, u.telefono, u.email, u.plan, d.monto, d.fecha_generacion, d.fecha_vencimiento, d.estado 
+                             FROM usuarios u 
+                             INNER JOIN deudas d ON u.id_usuario = d.id_usuario 
+                             WHERE d.estado = 'pendiente' 
+                             ORDER BY u.id_usuario, d.fecha_generacion";
             $deudores = ejecutarConsulta($sql_deudores, $conn);
 
             if (isset($deudores['error'])) {
@@ -134,8 +122,33 @@ switch ($action) {
             } else {
                 $response = [
                     'status' => 'success',
-                    'deudores' => $deudores
+                    'deudores' => []
                 ];
+
+                // Agrupar las deudas por usuario
+                foreach ($deudores as $deuda) {
+                    $id_usuario = $deuda['id_usuario'];
+                    if (!isset($response['deudores'][$id_usuario])) {
+                        $response['deudores'][$id_usuario] = [
+                            'id_usuario' => $deuda['id_usuario'],
+                            'nombre' => $deuda['nombre'],
+                            'apellido' => $deuda['apellido'],
+                            'telefono' => $deuda['telefono'],
+                            'email' => $deuda['email'],
+                            'plan' => $deuda['plan'],
+                            'deudas' => []
+                        ];
+                    }
+                    $response['deudores'][$id_usuario]['deudas'][] = [
+                        'monto' => $deuda['monto'],
+                        'fecha_generacion' => $deuda['fecha_generacion'],
+                        'fecha_vencimiento' => $deuda['fecha_vencimiento'],
+                        'estado' => $deuda['estado']
+                    ];
+                }
+
+                // Convertir el array asociativo en un array indexado
+                $response['deudores'] = array_values($response['deudores']);
             }
 
             echo json_encode($response);
@@ -221,16 +234,16 @@ switch ($action) {
 
             if ($id_usuario !== null) {
                 error_log("Ejecutando acción 'pago' para ID: $id_usuario");
-                // Marcar la deuda de un usuario como pagada
+                // Marcar todas las deudas pendientes de un usuario como pagadas
                 $sql_pagar = "UPDATE deudas SET estado = 'pagado' WHERE id_usuario = $id_usuario AND estado = 'pendiente'";
 
                 if ($conn->query($sql_pagar) === TRUE) {
                     $response = [
                         'status' => 'success',
-                        'message' => 'Deuda marcada como pagada'
+                        'message' => 'Todas las deudas pendientes han sido marcadas como pagadas'
                     ];
                 } else {
-                    $response['message'] = 'Error al actualizar deuda: ' . $conn->error;
+                    $response['message'] = 'Error al actualizar deudas: ' . $conn->error;
                     error_log($response['message']);
                 }
 
