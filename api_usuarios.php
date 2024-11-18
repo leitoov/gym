@@ -110,13 +110,17 @@ switch ($action) {
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             error_log("Ejecutando acción 'deudores'");
             // Obtener usuarios con deudas pendientes
-            $sql_deudores = "SELECT u.id_usuario, u.nombre, u.apellido, d.id_deuda, d.monto, d.fecha_generacion, d.fecha_vencimiento, d.estado 
-                             FROM usuarios u 
-                             INNER JOIN deudas d ON u.id_usuario = d.id_usuario 
-                             WHERE d.estado = 'pendiente' 
-                             ORDER BY u.id_usuario, d.fecha_generacion";
+            $sql_deudores = "SELECT u.id_usuario, u.nombre, u.apellido, 
+                COALESCE(u.telefono, 'No disponible') AS telefono, 
+                COALESCE(u.email, 'No disponible') AS email, 
+                COALESCE(u.plan, 'No especificado') AS plan, 
+                d.id_deuda, d.monto, d.fecha_generacion, d.fecha_vencimiento, d.estado 
+                FROM usuarios u 
+                INNER JOIN deudas d ON u.id_usuario = d.id_usuario 
+                WHERE d.estado = 'pendiente' 
+                ORDER BY u.id_usuario, d.fecha_generacion";
             $deudores = ejecutarConsulta($sql_deudores, $conn);
-
+        
             if (isset($deudores['error'])) {
                 $response['message'] = 'Error al obtener deudores: ' . $deudores['error'];
             } else {
@@ -124,7 +128,6 @@ switch ($action) {
                     'status' => 'success',
                     'deudores' => []
                 ];
-
                 // Agrupar las deudas por usuario
                 foreach ($deudores as $deuda) {
                     $id_usuario = $deuda['id_usuario'];
@@ -133,6 +136,9 @@ switch ($action) {
                             'id_usuario' => $deuda['id_usuario'],
                             'nombre' => $deuda['nombre'],
                             'apellido' => $deuda['apellido'],
+                            'telefono' => $deuda['telefono'],  // El valor nunca será NULL, siempre tendrá un valor predeterminado.
+                            'email' => $deuda['email'],        // Lo mismo aplica para email.
+                            'plan' => $deuda['plan'],          // Y también para el plan.
                             'deudas' => []
                         ];
                     }
@@ -144,18 +150,15 @@ switch ($action) {
                         'estado' => $deuda['estado']
                     ];
                 }
-
                 // Convertir el array asociativo en un array indexado
                 $response['deudores'] = array_values($response['deudores']);
             }
-
             echo json_encode($response);
             die();
         } else {
             error_log("Método HTTP incorrecto para la acción 'deudores'");
         }
-        break;
-
+    break;
     case 'usuario':
         if ($id !== null && $_SERVER['REQUEST_METHOD'] === 'GET') {
             error_log("Ejecutando acción 'usuario' con ID: $id");
