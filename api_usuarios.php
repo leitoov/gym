@@ -66,8 +66,16 @@ switch ($action) {
                 error_log("Error al obtener el total de usuarios: " . json_encode($resultado_usuarios));
             }
 
-            // Obtener total de deudores
-            $sql_deudores = "SELECT COUNT(*) as total FROM usuarios WHERE deuda > 0";
+            // Obtener total de deudores (usuarios con deudas pendientes)
+            $sql_deudores = "
+                SELECT COUNT(*) as total
+                FROM usuarios u
+                WHERE EXISTS (
+                    SELECT 1
+                    FROM deudas d
+                    WHERE d.id_usuario = u.id_usuario AND d.estado = 'pendiente'
+                )
+            ";
             $resultado_deudores = ejecutarConsulta($sql_deudores, $conn);
 
             if (isset($resultado_deudores[0])) {
@@ -109,8 +117,16 @@ switch ($action) {
     case 'deudores':
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             error_log("Ejecutando acción 'deudores'");
-            // Obtener usuarios con deudas
-            $sql_deudores = "SELECT * FROM usuarios WHERE deuda > 0";
+            // Obtener usuarios con deudas activas (deudas con estado 'pendiente')
+            $sql_deudores = "
+                SELECT u.id_usuario, u.nombre, u.apellido, u.telefono, u.email, u.plan, u.fecha_vencimiento
+                FROM usuarios u
+                WHERE EXISTS (
+                    SELECT 1
+                    FROM deudas d
+                    WHERE d.id_usuario = u.id_usuario AND d.estado = 'pendiente'
+                )
+            ";
             $deudores = ejecutarConsulta($sql_deudores, $conn);
 
             if (isset($deudores['error'])) {
@@ -206,7 +222,7 @@ switch ($action) {
             if ($id_usuario !== null) {
                 error_log("Ejecutando acción 'pago' para ID: $id_usuario");
                 // Marcar la deuda de un usuario como pagada
-                $sql_pagar = "UPDATE usuarios SET deuda = 0 WHERE id_usuario = $id_usuario";
+                $sql_pagar = "UPDATE deudas SET estado = 'pagado' WHERE id_usuario = $id_usuario AND estado = 'pendiente'";
 
                 if ($conn->query($sql_pagar) === TRUE) {
                     $response = [
