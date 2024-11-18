@@ -116,6 +116,7 @@ if (!isset($_SESSION['admin_id'])) {
                         deudoresContainer += '</div>';
                         deudoresContainer += '<div class="user-actions">';
                         deudoresContainer += '<a href="ver_historial.php?id=' + deudor.id_usuario + '" class="btn btn-info btn-custom"><i class="fas fa-history"></i> Ver Historial</a>';
+                        deudoresContainer += '<button onclick="marcarComoPagado(' + deudor.id_usuario + ')" class="btn btn-success btn-custom"><i class="fas fa-check"></i> Marcar como Pagado</button>';
                         deudoresContainer += '</div>';
                         deudoresContainer += '</div>';
                         deudoresContainer += '</div>';
@@ -128,6 +129,40 @@ if (!isset($_SESSION['admin_id'])) {
             },
             error: function(xhr, status, error) {
                 console.error('Error en la solicitud AJAX:', status, error);
+            }
+        });
+    }
+
+    function marcarComoPagado(id_usuario) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "Esta acción marcará la deuda como pagada.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, marcar como pagado'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: 'api_usuarios.php?action=marcar_pagado',
+                    method: 'POST',
+                    data: { id_usuario: id_usuario },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            Swal.fire('Éxito', 'La deuda ha sido marcada como pagada.', 'success').then(() => {
+                                cargarDeudores(); // Recargar la lista de deudores
+                            });
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error en la solicitud AJAX:', status, error);
+                        Swal.fire('Error', 'Hubo un problema al marcar la deuda como pagada.', 'error');
+                    }
+                });
             }
         });
     }
