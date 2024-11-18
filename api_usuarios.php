@@ -22,6 +22,7 @@ $response = [
 function ejecutarConsulta($sql, $conn) {
     $result = $conn->query($sql);
     if ($result === false) {
+        error_log("Error en la consulta: " . $conn->error);
         return ['error' => $conn->error];
     }
     $data = [];
@@ -34,6 +35,7 @@ function ejecutarConsulta($sql, $conn) {
 // Lógica de las acciones disponibles
 switch ($action) {
     case 'totales':
+        error_log("Ejecutando acción 'totales'");
         $response = [
             'status' => 'success',
             'total_usuarios' => 0,
@@ -46,6 +48,8 @@ switch ($action) {
 
         if (isset($resultado_usuarios[0])) {
             $response['total_usuarios'] = $resultado_usuarios[0]['total'];
+        } else {
+            error_log("Error al obtener el total de usuarios: " . json_encode($resultado_usuarios));
         }
 
         // Obtener total de deudores
@@ -54,12 +58,15 @@ switch ($action) {
 
         if (isset($resultado_deudores[0])) {
             $response['total_deudores'] = $resultado_deudores[0]['total'];
+        } else {
+            error_log("Error al obtener el total de deudores: " . json_encode($resultado_deudores));
         }
 
         echo json_encode($response);
         exit();
 
     case 'usuarios':
+        error_log("Ejecutando acción 'usuarios'");
         // Obtener todos los usuarios
         $sql_usuarios = "SELECT * FROM usuarios";
         $usuarios = ejecutarConsulta($sql_usuarios, $conn);
@@ -77,6 +84,7 @@ switch ($action) {
         exit();
 
     case 'deudores':
+        error_log("Ejecutando acción 'deudores'");
         // Obtener usuarios con deudas
         $sql_deudores = "SELECT * FROM usuarios WHERE deuda > 0";
         $deudores = ejecutarConsulta($sql_deudores, $conn);
@@ -95,6 +103,7 @@ switch ($action) {
 
     case 'usuario':
         if ($id !== null) {
+            error_log("Ejecutando acción 'usuario' con ID: $id");
             // Obtener un usuario por su ID
             $sql_usuario = "SELECT * FROM usuarios WHERE id_usuario = $id";
             $usuario = ejecutarConsulta($sql_usuario, $conn);
@@ -109,6 +118,8 @@ switch ($action) {
             } else {
                 $response['message'] = 'Usuario no encontrado';
             }
+        } else {
+            error_log("ID no proporcionado para la acción 'usuario'");
         }
 
         echo json_encode($response);
@@ -116,6 +127,7 @@ switch ($action) {
 
     case 'actualizar':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            error_log("Ejecutando acción 'actualizar'");
             // Verificar si los parámetros requeridos existen
             $required_fields = ['id_usuario', 'nombre', 'apellido', 'telefono', 'email', 'plan', 'fecha_vencimiento', 'deuda'];
             foreach ($required_fields as $field) {
@@ -144,53 +156,20 @@ switch ($action) {
                     'message' => 'Usuario actualizado correctamente'
                 ];
             } else {
+                error_log("Error al actualizar usuario: " . $conn->error);
                 $response['message'] = 'Error al actualizar usuario: ' . $conn->error;
             }
 
             echo json_encode($response);
             exit();
-        }
-        break;
-
-    case 'anadir':
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Verificar si los parámetros requeridos existen para añadir un usuario
-            $required_fields = ['nombre', 'apellido', 'telefono', 'email', 'plan', 'fecha_vencimiento', 'deuda'];
-            foreach ($required_fields as $field) {
-                if (!isset($_POST[$field]) || empty(trim($_POST[$field]))) {
-                    $response['message'] = "Falta el campo requerido: $field";
-                    echo json_encode($response);
-                    exit();
-                }
-            }
-
-            // Insertar nuevo usuario
-            $nombre = $conn->real_escape_string($_POST['nombre']);
-            $apellido = $conn->real_escape_string($_POST['apellido']);
-            $telefono = $conn->real_escape_string($_POST['telefono']);
-            $email = $conn->real_escape_string($_POST['email']);
-            $plan = $conn->real_escape_string($_POST['plan']);
-            $fecha_vencimiento = $conn->real_escape_string($_POST['fecha_vencimiento']);
-            $deuda = floatval($_POST['deuda']);
-
-            $sql_insertar = "INSERT INTO usuarios (nombre, apellido, telefono, email, plan, fecha_vencimiento, deuda) VALUES ('$nombre', '$apellido', '$telefono', '$email', '$plan', '$fecha_vencimiento', $deuda)";
-
-            if ($conn->query($sql_insertar) === TRUE) {
-                $response = [
-                    'status' => 'success',
-                    'message' => 'Usuario añadido correctamente'
-                ];
-            } else {
-                $response['message'] = 'Error al añadir usuario: ' . $conn->error;
-            }
-
-            echo json_encode($response);
-            exit();
+        } else {
+            error_log("Método HTTP incorrecto para la acción 'actualizar'");
         }
         break;
 
     case 'pago':
         if ($id !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
+            error_log("Ejecutando acción 'pago' para ID: $id");
             // Marcar la deuda de un usuario como pagada
             $sql_pagar = "UPDATE usuarios SET deuda = 0 WHERE id_usuario = $id";
 
@@ -200,18 +179,21 @@ switch ($action) {
                     'message' => 'Deuda marcada como pagada'
                 ];
             } else {
+                error_log("Error al actualizar deuda: " . $conn->error);
                 $response['message'] = 'Error al actualizar deuda: ' . $conn->error;
             }
 
             echo json_encode($response);
             exit();
+        } else {
+            error_log("ID no proporcionado o método HTTP incorrecto para la acción 'pago'");
         }
         break;
 
     default:
+        error_log("Acción no válida: $action");
         // En caso de acción inválida
         echo json_encode($response);
         exit();
 }
-
 ?>
