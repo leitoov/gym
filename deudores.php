@@ -69,6 +69,22 @@ if (!isset($_SESSION['admin_id'])) {
                 margin-top: 15px;
             }
         }
+
+        /* Estilo para el empty state */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            background-color: #f0f0f0;
+            border-radius: 15px;
+            color: #6c757d;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .empty-state i {
+            font-size: 50px;
+            margin-bottom: 20px;
+            color: #adb5bd;
+        }
     </style>
 </head>
 <body>
@@ -103,24 +119,36 @@ if (!isset($_SESSION['admin_id'])) {
                     let deudores = response.deudores;
                     let deudoresContainer = '';
 
-                    deudores.forEach(function(deudor) {
-                        deudoresContainer += '<div class="user-card">';
-                        deudoresContainer += '<div class="user-info">';
-                        deudoresContainer += '<div class="user-details">';
-                        deudoresContainer += '<h5>' + deudor.nombre + ' ' + deudor.apellido + '</h5>';
-                        deudoresContainer += '<p><strong>Teléfono:</strong> ' + deudor.telefono + '</p>';
-                        deudoresContainer += '<p><strong>Correo Electrónico:</strong> ' + deudor.email + '</p>';
-                        deudoresContainer += '<p><strong>Plan:</strong> ' + deudor.plan + '</p>';
-                        deudoresContainer += '<p><strong>Fecha de Vencimiento:</strong> ' + deudor.fecha_vencimiento + '</p>';
-                        deudoresContainer += '<p><strong>Deuda:</strong> AR$ ' + deudor.deuda + '</p>';
-                        deudoresContainer += '</div>';
-                        deudoresContainer += '<div class="user-actions">';
-                        deudoresContainer += '<a href="ver_historial.php?id=' + deudor.id_usuario + '" class="btn btn-info btn-custom"><i class="fas fa-history"></i> Ver Historial</a>';
-                        deudoresContainer += '<button onclick="marcarComoPagado(' + deudor.id_usuario + ')" class="btn btn-success btn-custom"><i class="fas fa-check"></i> Marcar como Pagado</button>';
-                        deudoresContainer += '</div>';
-                        deudoresContainer += '</div>';
-                        deudoresContainer += '</div>';
-                    });
+                    if (deudores.length === 0) {
+                        // Mostrar un empty state si no hay deudores
+                        deudoresContainer = `
+                            <div class="empty-state">
+                                <i class="fas fa-smile-beam"></i>
+                                <h4>¡No hay deudores en este momento!</h4>
+                                <p>Todos los usuarios están al día con sus pagos. ¡Buen trabajo!</p>
+                            </div>
+                        `;
+                    } else {
+                        // Mostrar la lista de deudores
+                        deudores.forEach(function(deudor) {
+                            deudoresContainer += '<div class="user-card">';
+                            deudoresContainer += '<div class="user-info">';
+                            deudoresContainer += '<div class="user-details">';
+                            deudoresContainer += '<h5>' + deudor.nombre + ' ' + deudor.apellido + '</h5>';
+                            deudoresContainer += '<p><strong>Teléfono:</strong> ' + deudor.telefono + '</p>';
+                            deudoresContainer += '<p><strong>Correo Electrónico:</strong> ' + deudor.email + '</p>';
+                            deudoresContainer += '<p><strong>Plan:</strong> ' + deudor.plan + '</p>';
+                            deudoresContainer += '<p><strong>Fecha de Vencimiento:</strong> ' + deudor.fecha_vencimiento + '</p>';
+                            deudoresContainer += '<p><strong>Deuda:</strong> AR$ ' + deudor.deuda + '</p>';
+                            deudoresContainer += '</div>';
+                            deudoresContainer += '<div class="user-actions">';
+                            deudoresContainer += '<a href="ver_historial.php?id=' + deudor.id_usuario + '" class="btn btn-info btn-custom"><i class="fas fa-history"></i> Ver Historial</a>';
+                            deudoresContainer += '<button onclick="marcarComoPagado(' + deudor.id_usuario + ')" class="btn btn-success btn-custom"><i class="fas fa-check"></i> Marcar como Pagado</button>';
+                            deudoresContainer += '</div>';
+                            deudoresContainer += '</div>';
+                            deudoresContainer += '</div>';
+                        });
+                    }
 
                     $('#deudoresContainer').html(deudoresContainer);
                 } else {
