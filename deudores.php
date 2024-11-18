@@ -148,7 +148,12 @@ if (!isset($_SESSION['admin_id'])) {
                     } else {
                         // Mostrar la lista de deudores
                         deudores.forEach(function(deudor) {
-                            deudoresContainer += '<div class="user-card">';
+                            if (deudor.deudas.length > 1) {
+                                deudoresContainer += '<div class="user-card" style="background-color: #f8f9fa;">';
+                            } else {
+                                deudoresContainer += '<div class="user-card">';
+                            }
+                            
                             deudoresContainer += '<div class="user-info">';
                             deudoresContainer += '<div class="user-details">';
                             deudoresContainer += '<h5>' + deudor.nombre + ' ' + deudor.apellido + '</h5>';
@@ -161,9 +166,8 @@ if (!isset($_SESSION['admin_id'])) {
                             deudor.deudas.forEach(function(deuda) {
                                 deudoresContainer += '<div class="debt-item">';
                                 deudoresContainer += '<p><strong>Monto:</strong> AR$ ' + deuda.monto + '</p>';
-                                deudoresContainer += '<p><strong>Fecha de Inicio de Deuda:</strong> ' + deuda.fecha_generacion + '</p>';
-                                deudoresContainer += '<p><strong>Fecha Límite de Pago:</strong> ' + deuda.fecha_vencimiento + '</p>';
-                                deudoresContainer += '<button onclick="eliminarDeuda(' + deuda.id_deuda + ')" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Eliminar Deuda</button>';
+                                deudoresContainer += '<p><strong>Mes de la Deuda:</strong> ' + deuda.fecha_generacion + '</p>';
+                                deudoresContainer += '<button onclick="marcarDeudaComoPagada(' + deuda.id_deuda + ')" class="btn btn-success btn-sm"><i class="fas fa-check"></i> Marcar como Pagada</button>';
                                 deudoresContainer += '</div>';
                             });
                             deudoresContainer += '</div>'; // Cerrar la lista de deudas
@@ -171,7 +175,6 @@ if (!isset($_SESSION['admin_id'])) {
                             deudoresContainer += '</div>'; // Cerrar los detalles del usuario
                             deudoresContainer += '<div class="user-actions">';
                             deudoresContainer += '<a href="ver_historial.php?id=' + deudor.id_usuario + '" class="btn btn-info btn-custom"><i class="fas fa-history"></i> Ver Historial</a>';
-                            deudoresContainer += '<button onclick="marcarComoPagado(' + deudor.id_usuario + ')" class="btn btn-success btn-custom"><i class="fas fa-check"></i> Marcar como Pagado</button>';
                             deudoresContainer += '</div>';
                             deudoresContainer += '</div>'; // Cerrar la información del usuario
                             deudoresContainer += '</div>'; // Cerrar la tarjeta del usuario
@@ -190,22 +193,22 @@ if (!isset($_SESSION['admin_id'])) {
         });
     }
 
-    function marcarComoPagado(id_usuario) {
+    function marcarDeudaComoPagada(id_deuda) {
         Swal.fire({
             title: '¿Estás seguro?',
-            text: "Esta acción marcará todas las deudas del usuario como pagadas.",
+            text: "Esta acción marcará esta deuda específica como pagada.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
-            confirmButtonText: 'Sí, marcar como pagado'
+            confirmButtonText: 'Sí, marcar como pagada'
         }).then((result) => {
             if (result.isConfirmed) {
                 $.ajax({
-                    url: 'api_usuarios.php?action=pago',
+                    url: 'api_usuarios.php?action=marcar_deuda_pagada',
                     method: 'POST',
                     contentType: 'application/json',
-                    data: JSON.stringify({ id: id_usuario }),
+                    data: JSON.stringify({ id_deuda: id_deuda }),
                     dataType: 'json',
                     success: function(response) {
                         if (response.status === 'success') {
@@ -219,41 +222,6 @@ if (!isset($_SESSION['admin_id'])) {
                     error: function(xhr, status, error) {
                         console.error('Error en la solicitud AJAX:', status, error);
                         Swal.fire('Error', 'Hubo un problema al marcar la deuda como pagada.', 'error');
-                    }
-                });
-            }
-        });
-    }
-
-    function eliminarDeuda(id_deuda) {
-        Swal.fire({
-            title: '¿Estás seguro?',
-            text: "Esta acción eliminará la deuda seleccionada.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Sí, eliminar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: 'api_usuarios.php?action=eliminar_deuda',
-                    method: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({ id_deuda: id_deuda }),
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.status === 'success') {
-                            Swal.fire('Éxito', 'La deuda ha sido eliminada.', 'success').then(() => {
-                                cargarDeudores(); // Recargar la lista de deudores
-                            });
-                        } else {
-                            Swal.fire('Error', response.message, 'error');
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error en la solicitud AJAX:', status, error);
-                        Swal.fire('Error', 'Hubo un problema al eliminar la deuda.', 'error');
                     }
                 });
             }

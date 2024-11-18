@@ -224,65 +224,34 @@ switch ($action) {
         }
         break;
 
-    case 'pago':
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $data = json_decode(file_get_contents("php://input"), true);
-            $id_usuario = isset($data['id']) ? intval($data['id']) : null;
-
-            if ($id_usuario !== null) {
-                error_log("Ejecutando acción 'pago' para ID: $id_usuario");
-                // Marcar todas las deudas pendientes de un usuario como pagadas
-                $sql_pagar = "UPDATE deudas SET estado = 'pagado' WHERE id_usuario = $id_usuario AND estado = 'pendiente'";
-
-                if ($conn->query($sql_pagar) === TRUE) {
-                    $response = [
-                        'status' => 'success',
-                        'message' => 'Todas las deudas pendientes han sido marcadas como pagadas'
-                    ];
-                } else {
-                    $response['message'] = 'Error al actualizar deudas: ' . $conn->error;
-                    error_log($response['message']);
-                }
-
-                echo json_encode($response);
-                die();
-            } else {
-                $response['message'] = "ID de usuario no proporcionado para la acción 'pago'";
-                error_log($response['message']);
-            }
-        } else {
-            error_log("Método HTTP incorrecto para la acción 'pago'");
-        }
-        break;
-
-    case 'eliminar_deuda':
+    case 'marcar_deuda_pagada':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = json_decode(file_get_contents("php://input"), true);
             $id_deuda = isset($data['id_deuda']) ? intval($data['id_deuda']) : null;
 
             if ($id_deuda !== null) {
-                error_log("Ejecutando acción 'eliminar_deuda' para ID de deuda: $id_deuda");
-                // Eliminar la deuda específica
-                $sql_eliminar_deuda = "DELETE FROM deudas WHERE id_deuda = $id_deuda";
+                error_log("Ejecutando acción 'marcar_deuda_pagada' para ID de deuda: $id_deuda");
+                // Marcar la deuda específica como pagada
+                $sql_marcar_pagada = "UPDATE deudas SET estado = 'pagado' WHERE id_deuda = $id_deuda AND estado = 'pendiente'";
 
-                if ($conn->query($sql_eliminar_deuda) === TRUE) {
+                if ($conn->query($sql_marcar_pagada) === TRUE) {
                     $response = [
                         'status' => 'success',
-                        'message' => 'Deuda eliminada correctamente'
+                        'message' => 'Deuda marcada como pagada correctamente'
                     ];
                 } else {
-                    $response['message'] = 'Error al eliminar deuda: ' . $conn->error;
+                    $response['message'] = 'Error al actualizar deuda: ' . $conn->error;
                     error_log($response['message']);
                 }
 
                 echo json_encode($response);
                 die();
             } else {
-                $response['message'] = "ID de deuda no proporcionado para la acción 'eliminar_deuda'";
+                $response['message'] = "ID de deuda no proporcionado para la acción 'marcar_deuda_pagada'";
                 error_log($response['message']);
             }
         } else {
-            error_log("Método HTTP incorrecto para la acción 'eliminar_deuda'");
+            error_log("Método HTTP incorrecto para la acción 'marcar_deuda_pagada'");
         }
         break;
 
