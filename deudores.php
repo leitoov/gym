@@ -161,8 +161,9 @@ if (!isset($_SESSION['admin_id'])) {
                             deudor.deudas.forEach(function(deuda) {
                                 deudoresContainer += '<div class="debt-item">';
                                 deudoresContainer += '<p><strong>Monto:</strong> AR$ ' + deuda.monto + '</p>';
-                                deudoresContainer += '<p><strong>Fecha de Generación:</strong> ' + deuda.fecha_generacion + '</p>';
-                                deudoresContainer += '<p><strong>Fecha de Vencimiento:</strong> ' + deuda.fecha_vencimiento + '</p>';
+                                deudoresContainer += '<p><strong>Fecha de Inicio de Deuda:</strong> ' + deuda.fecha_generacion + '</p>';
+                                deudoresContainer += '<p><strong>Fecha Límite de Pago:</strong> ' + deuda.fecha_vencimiento + '</p>';
+                                deudoresContainer += '<button onclick="eliminarDeuda(' + deuda.id_deuda + ')" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Eliminar Deuda</button>';
                                 deudoresContainer += '</div>';
                             });
                             deudoresContainer += '</div>'; // Cerrar la lista de deudas
@@ -192,7 +193,7 @@ if (!isset($_SESSION['admin_id'])) {
     function marcarComoPagado(id_usuario) {
         Swal.fire({
             title: '¿Estás seguro?',
-            text: "Esta acción marcará la deuda como pagada.",
+            text: "Esta acción marcará todas las deudas del usuario como pagadas.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
@@ -218,6 +219,41 @@ if (!isset($_SESSION['admin_id'])) {
                     error: function(xhr, status, error) {
                         console.error('Error en la solicitud AJAX:', status, error);
                         Swal.fire('Error', 'Hubo un problema al marcar la deuda como pagada.', 'error');
+                    }
+                });
+            }
+        });
+    }
+
+    function eliminarDeuda(id_deuda) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "Esta acción eliminará la deuda seleccionada.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: 'api_usuarios.php?action=eliminar_deuda',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ id_deuda: id_deuda }),
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            Swal.fire('Éxito', 'La deuda ha sido eliminada.', 'success').then(() => {
+                                cargarDeudores(); // Recargar la lista de deudores
+                            });
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error en la solicitud AJAX:', status, error);
+                        Swal.fire('Error', 'Hubo un problema al eliminar la deuda.', 'error');
                     }
                 });
             }

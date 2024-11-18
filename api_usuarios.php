@@ -109,8 +109,8 @@ switch ($action) {
     case 'deudores':
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             error_log("Ejecutando acción 'deudores'");
-            // Obtener usuarios con deudas pendientes y los detalles de cada deuda
-            $sql_deudores = "SELECT u.id_usuario, u.nombre, u.apellido, u.telefono, u.email, u.plan, d.monto, d.fecha_generacion, d.fecha_vencimiento, d.estado 
+            // Obtener usuarios con deudas pendientes
+            $sql_deudores = "SELECT u.id_usuario, u.nombre, u.apellido, d.id_deuda, d.monto, d.fecha_generacion, d.fecha_vencimiento, d.estado 
                              FROM usuarios u 
                              INNER JOIN deudas d ON u.id_usuario = d.id_usuario 
                              WHERE d.estado = 'pendiente' 
@@ -133,13 +133,11 @@ switch ($action) {
                             'id_usuario' => $deuda['id_usuario'],
                             'nombre' => $deuda['nombre'],
                             'apellido' => $deuda['apellido'],
-                            'telefono' => $deuda['telefono'],
-                            'email' => $deuda['email'],
-                            'plan' => $deuda['plan'],
                             'deudas' => []
                         ];
                     }
                     $response['deudores'][$id_usuario]['deudas'][] = [
+                        'id_deuda' => $deuda['id_deuda'],
                         'monto' => $deuda['monto'],
                         'fecha_generacion' => $deuda['fecha_generacion'],
                         'fecha_vencimiento' => $deuda['fecha_vencimiento'],
@@ -186,7 +184,6 @@ switch ($action) {
     case 'actualizar':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             error_log("Ejecutando acción 'actualizar'");
-            // Verificar si los parámetros requeridos existen
             $data = json_decode(file_get_contents("php://input"), true);
             $required_fields = ['id_usuario', 'nombre', 'apellido', 'telefono', 'email', 'plan', 'fecha_vencimiento', 'deuda'];
 
@@ -255,6 +252,37 @@ switch ($action) {
             }
         } else {
             error_log("Método HTTP incorrecto para la acción 'pago'");
+        }
+        break;
+
+    case 'eliminar_deuda':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $data = json_decode(file_get_contents("php://input"), true);
+            $id_deuda = isset($data['id_deuda']) ? intval($data['id_deuda']) : null;
+
+            if ($id_deuda !== null) {
+                error_log("Ejecutando acción 'eliminar_deuda' para ID de deuda: $id_deuda");
+                // Eliminar la deuda específica
+                $sql_eliminar_deuda = "DELETE FROM deudas WHERE id_deuda = $id_deuda";
+
+                if ($conn->query($sql_eliminar_deuda) === TRUE) {
+                    $response = [
+                        'status' => 'success',
+                        'message' => 'Deuda eliminada correctamente'
+                    ];
+                } else {
+                    $response['message'] = 'Error al eliminar deuda: ' . $conn->error;
+                    error_log($response['message']);
+                }
+
+                echo json_encode($response);
+                die();
+            } else {
+                $response['message'] = "ID de deuda no proporcionado para la acción 'eliminar_deuda'";
+                error_log($response['message']);
+            }
+        } else {
+            error_log("Método HTTP incorrecto para la acción 'eliminar_deuda'");
         }
         break;
 
