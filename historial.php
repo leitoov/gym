@@ -3,7 +3,7 @@
 ob_start(); // Iniciar el buffer de salida para prevenir cualquier salida accidental
 
 session_start();
-include 'config/conexion.php'; // Incluye la conexión a la base de datos
+include 'conexion.php'; // Incluye la conexión a la base de datos
 
 // Desactivar la salida de errores para evitar problemas de cabeceras
 ini_set('display_errors', 0);
@@ -22,6 +22,9 @@ if (!isset($_SESSION['admin_id'])) {
 if ($conn->connect_error) {
     die("Error de conexión: " . $conn->connect_error);
 }
+
+// Configurar la localización en español
+setlocale(LC_TIME, 'es_ES.UTF-8', 'es_ES', 'esp'); // Intentar diferentes configuraciones para garantizar compatibilidad
 
 // Obtener ID de usuario
 $id_usuario = isset($_GET['id_usuario']) ? intval($_GET['id_usuario']) : null;
@@ -136,9 +139,13 @@ ob_end_flush(); // Finalizar el buffer de salida antes de comenzar el HTML
                         $estadoClase = 'estado-otro';
                         break;
                 }
+
+                // Formatear la fecha de generación en español
+                $fecha_generacion = strftime('%B %Y', strtotime($row['fecha_generacion']));
+                $fecha_generacion = ucfirst($fecha_generacion); // Capitalizar la primera letra del mes
                 ?>
                 <div class="debt-card <?php echo $estadoClase; ?>">
-                    <h5><strong>Mes de la Deuda:</strong> <?php echo date('F Y', strtotime($row['fecha_generacion'])); ?></h5>
+                    <h5><strong>Mes de la Deuda:</strong> <?php echo htmlspecialchars($fecha_generacion); ?></h5>
                     <p><strong>Monto:</strong> AR$ <?php echo number_format($row['monto'], 2); ?></p>
                     <p><strong>Fecha de Pago:</strong> <?php echo $row['fecha_pago'] ? htmlspecialchars($row['fecha_pago']) : 'No Pagado'; ?></p>
                     <p><strong>Estado:</strong> <?php echo htmlspecialchars($row['estado']); ?></p>
