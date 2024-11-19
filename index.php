@@ -20,45 +20,59 @@ if (!isset($_SESSION['admin_id'])) {
     <style>
         body {
             background-color: #fbeffb;
+            font-family: 'Roboto', sans-serif;
         }
 
         .container {
             background: #ffffff;
             border-radius: 15px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            padding: 30px;
+            padding: 40px;
             max-width: 900px;
-            margin: auto;
+            margin: 50px auto;
+        }
+
+        h2 {
+            font-weight: bold;
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 1rem;
         }
 
         .card-container {
             display: flex;
             flex-wrap: wrap;
-            gap: 1.5rem;
+            gap: 2rem;
             margin-top: 2rem;
-            justify-content: center;
+            justify-content: space-between;
         }
 
         .card {
             flex: 1;
             min-width: 250px;
             max-width: 300px;
-            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.1);
-            transition: 0.3s;
+            box-shadow: 0 6px 12px 0 rgba(0,0,0,0.1);
+            transition: 0.4s;
             border-radius: 15px;
             background-color: #ffe6f2;
             border: none;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
         }
 
         .card:hover {
-            box-shadow: 0 8px 16px 0 rgba(0,0,0,0.15);
-            transform: translateY(-5px);
+            box-shadow: 0 12px 24px 0 rgba(0,0,0,0.15);
+            transform: translateY(-8px);
         }
 
         .card-header {
             background-color: #f8a5c2;
             color: #fff;
             padding: 15px;
+            width: 100%;
             text-align: center;
             font-weight: bold;
             border-top-left-radius: 15px;
@@ -78,11 +92,14 @@ if (!isset($_SESSION['admin_id'])) {
         }
 
         .btn-custom {
-            margin-top: 10px;
+            margin-top: 20px;
             background-color: #f3a683;
             color: #fff;
             border: none;
             transition: background-color 0.3s;
+            font-weight: bold;
+            border-radius: 50px;
+            padding: 10px 20px;
         }
 
         .btn-custom:hover {
@@ -91,6 +108,12 @@ if (!isset($_SESSION['admin_id'])) {
 
         .text-right p {
             color: #555;
+            font-weight: bold;
+        }
+
+        .btn-danger {
+            border-radius: 50px;
+            padding: 10px 20px;
             font-weight: bold;
         }
 
@@ -107,7 +130,7 @@ if (!isset($_SESSION['admin_id'])) {
     </style>
 </head>
 <body>
-<div class="container mt-5">
+<div class="container">
     <h2 class="text-center">Panel de Administración del Gimnasio</h2>
     <div class="text-right mb-3">
         <p>Administrador: <?= $_SESSION['nombre_usuario'] ?></p>
