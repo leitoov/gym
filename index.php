@@ -1,200 +1,367 @@
-<?php
-session_start();
-include 'conexion.php'; // Incluye la conexión a la base de datos
-
-// Verificar si el administrador está autenticado
-if (!isset($_SESSION['admin_id'])) {
-    header('Location: index.html');
-    exit();
-}
-?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración - Gimnasio</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #9F7AEA;
+            --primary-dark: #805AD5;
+            --secondary: #F7FAFC;
+            --accent: #E9D8FD;
+            --text-primary: #2D3748;
+            --text-secondary: #4A5568;
+            --success: #68D391;
+            --warning: #F6AD55;
+            --gradient: linear-gradient(135deg, #9F7AEA 0%, #B794F4 100%);
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            background-color: #fbeffb;
-            font-family: 'Roboto', sans-serif;
+            font-family: 'DM Sans', sans-serif;
+            background-color: #F8F9FE;
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 2rem;
         }
 
         .container {
-            background: #ffffff;
-            border-radius: 15px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            padding: 40px;
-            max-width: 900px;
-            margin: 50px auto;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
         }
 
-        h2 {
-            font-weight: bold;
-            color: #333;
-            font-size: 2rem;
-            margin-bottom: 1rem;
-        }
-
-        .card-container {
+        .dashboard-header {
             display: flex;
-            flex-wrap: wrap;
-            gap: 2rem;
-            margin-top: 2rem;
             justify-content: space-between;
-        }
-
-        .card {
-            flex: 1;
-            min-width: 250px;
-            max-width: 300px;
-            box-shadow: 0 6px 12px 0 rgba(0,0,0,0.1);
-            transition: 0.4s;
-            border-radius: 15px;
-            background-color: #ffe6f2;
-            border: none;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
             align-items: center;
-            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid #EDF2F7;
         }
 
-        .card:hover {
-            box-shadow: 0 12px 24px 0 rgba(0,0,0,0.15);
-            transform: translateY(-8px);
+        .dashboard-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
         }
 
-        .card-header {
-            background-color: #f8a5c2;
-            color: #fff;
-            padding: 15px;
-            width: 100%;
-            text-align: center;
-            font-weight: bold;
-            border-top-left-radius: 15px;
-            border-top-right-radius: 15px;
+        .dashboard-title h1 {
+            font-size: 1.8rem;
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 0.5rem 1.5rem;
+            background: var(--secondary);
+            border-radius: var(--radius-md);
+            transition: var(--transition);
+        }
+
+        .user-info:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
             font-size: 1.2rem;
         }
 
-        .card-body {
-            padding: 20px;
-            text-align: center;
+        .logout-btn {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            padding: 0.6rem 1.2rem;
+            border-radius: 30px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .card-body i {
-            font-size: 3rem;
-            color: #ff6b81;
-            margin-bottom: 15px;
+        .logout-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
         }
 
-        .btn-custom {
-            margin-top: 20px;
-            background-color: #f3a683;
-            color: #fff;
-            border: none;
-            transition: background-color 0.3s;
-            font-weight: bold;
-            border-radius: 50px;
-            padding: 10px 20px;
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
         }
 
-        .btn-custom:hover {
-            background-color: #f19066;
+        .stat-card {
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 2rem;
+            border: 1px solid #EDF2F7;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
         }
 
-        .text-right p {
-            color: #555;
-            font-weight: bold;
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--gradient);
+            opacity: 0;
+            transition: var(--transition);
         }
 
-        .btn-danger {
-            border-radius: 50px;
-            padding: 10px 20px;
-            font-weight: bold;
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
         }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--accent);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .stat-card:hover .stat-icon {
+            background: var(--gradient);
+        }
+
+        .stat-card:hover .stat-icon i {
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .stat-icon i {
+            font-size: 1.5rem;
+            color: var(--primary);
+            transition: var(--transition);
+        }
+
+        .stat-info h3 {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            transition: var(--transition);
+        }
+
+        .stat-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1.5rem;
+            background: var(--gradient);
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: 500;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(159, 122, 234, 0.2);
+        }
+
+        .stat-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(159, 122, 234, 0.3);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stats-grid > div {
+            animation: slideIn 0.5s ease-out forwards;
+            opacity: 0;
+        }
+
+        .stats-grid > div:nth-child(1) { animation-delay: 0.1s; }
+        .stats-grid > div:nth-child(2) { animation-delay: 0.2s; }
+        .stats-grid > div:nth-child(3) { animation-delay: 0.3s; }
 
         @media (max-width: 768px) {
-            .card-container {
-                flex-direction: column;
-                align-items: center;
+            body {
+                padding: 1rem;
             }
 
-            .card {
-                width: 100%;
+            .container {
+                padding: 1rem;
+            }
+
+            .dashboard-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .user-info {
+                flex-direction: column;
+                padding: 1rem;
+            }
+
+            .stat-card {
+                padding: 1.5rem;
             }
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <h2 class="text-center">Panel de Administración del Gimnasio</h2>
-    <div class="text-right mb-3">
-        <p>Administrador: <?= $_SESSION['nombre_usuario'] ?></p>
-        <a href="logout.php" class="btn btn-danger"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+    <div class="container">
+        <header class="dashboard-header">
+            <div class="dashboard-title">
+                <h1>Panel de Administración</h1>
+            </div>
+            <div class="user-info">
+                <div class="user-avatar">
+                    A
+                </div>
+                <span>Admin: <?= $_SESSION['nombre_usuario'] ?></span>
+                <button class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Cerrar Sesión
+                </button>
+            </div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Usuarios Registrados</h3>
+                    <div class="stat-number" id="totalUsuarios">0</div>
+                    <p class="stat-description">Total de miembros activos en el gimnasio</p>
+                    <a href="usuarios.php" class="stat-action">
+                        <i class="fas fa-eye"></i>
+                        Ver Usuarios
+                    </a>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Pagos Pendientes</h3>
+                    <div class="stat-number" id="totalDeudores">0</div>
+                    <p class="stat-description">Usuarios con pagos pendientes este mes</p>
+                    <a href="deudores.php" class="stat-action">
+                        <i class="fas fa-money-bill-wave"></i>
+                        Ver Deudores
+                    </a>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Sistema de Notificaciones</h3>
+                    <p class="stat-description">Envía recordatorios y notificaciones importantes</p>
+                    <a href="enviar_recordatorios.php" class="stat-action">
+                        <i class="fas fa-paper-plane"></i>
+                        Enviar Notificaciones
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="card-container">
-        <div class="card">
-            <div class="card-header">
-                Usuarios Registrados
-            </div>
-            <div class="card-body">
-                <i class="fas fa-users"></i>
-                <h4 id="totalUsuarios">Cargando...</h4>
-                <a href="usuarios.php" class="btn btn-custom">Ver Usuarios <i class="fas fa-eye"></i></a>
-            </div>
-        </div>
+    <script src="https://kit.fontawesome.com/your-font-awesome-kit.js"></script>
+    <script>
+        function animateNumber(element, target) {
+            const duration = 1500;
+            const steps = 60;
+            const stepValue = target / steps;
+            let current = 0;
+            const increment = duration / steps;
 
-        <div class="card">
-            <div class="card-header">
-                Usuarios con Deudas
-            </div>
-            <div class="card-body">
-                <i class="fas fa-exclamation-circle"></i>
-                <h4 id="totalDeudores">Cargando...</h4>
-                <a href="deudores.php" class="btn btn-custom">Ver Deudores <i class="fas fa-money-bill-wave"></i></a>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">
-                Enviar Recordatorios
-            </div>
-            <div class="card-body">
-                <i class="fas fa-envelope"></i>
-                <h4>Notificar Usuarios Vencidos</h4>
-                <a href="enviar_recordatorios.php" class="btn btn-custom">Enviar Recordatorios <i class="fas fa-paper-plane"></i></a>
-            </div>
-        </div>
-    </div>
-</div>
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-<script>
-    $(document).ready(function() {
-        $.ajax({
-            url: 'api_usuarios.php?action=totales',
-            method: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                if (response.status === 'success') {
-                    let totalUsuarios = response.total_usuarios;
-                    let totalDeudores = response.total_deudores;
-
-                    $('#totalUsuarios').text(totalUsuarios + ' Usuarios');
-                    $('#totalDeudores').text(totalDeudores + ' Deudores');
+            const timer = setInterval(() => {
+                current += stepValue;
+                if (current > target) {
+                    element.textContent = target;
+                    clearInterval(timer);
                 } else {
-                    console.error('Error en la respuesta de la API:', response.message);
+                    element.textContent = Math.floor(current);
                 }
-            },
-            error: function(xhr, status, error) {
-                console.error('Error en la solicitud AJAX:', status, error);
-            }
-        });
-    });
-</script>
+            }, increment);
+        }
+
+        // Fetch y animación de datos
+        fetch('api_usuarios.php?action=totales')
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    animateNumber(document.getElementById('totalUsuarios'), data.total_usuarios);
+                    animateNumber(document.getElementById('totalDeudores'), data.total_deudores);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    </script>
 </body>
 </html>
