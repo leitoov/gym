@@ -2,14 +2,24 @@
 session_start();
 include 'conexion.php'; // Incluye la conexión a la base de datos
 
+// Activar la visualización de errores
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 // Verificar si el administrador está autenticado
 if (!isset($_SESSION['admin_id'])) {
     header('Location: index.html');
     exit();
 }
 
+// Verificar conexión a la base de datos
+if ($conn->connect_error) {
+    die("Error de conexión: " . $conn->connect_error);
+}
+
 // Obtener ID de usuario
-$id_usuario = isset($_GET['id']) ? intval($_GET['id']) : null;
+$id_usuario = isset($_GET['id_usuario']) ? intval($_GET['id_usuario']) : null;
 if ($id_usuario === null) {
     echo "<p>Error: ID de usuario no proporcionado.</p>";
     exit();
@@ -19,6 +29,10 @@ if ($id_usuario === null) {
 $sql = "SELECT * FROM deudas WHERE id_usuario = $id_usuario ORDER BY fecha_generacion DESC";
 $result = $conn->query($sql);
 
+if ($result === false) {
+    echo "<p>Error al ejecutar la consulta: " . $conn->error . "</p>";
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
