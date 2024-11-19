@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'conexion.php'; // Incluye la conexión a la base de datos
+include 'config/conexion.php'; // Incluye la conexión a la base de datos
 
 // Verificar si el administrador está autenticado
 if (!isset($_SESSION['admin_id'])) {
@@ -18,46 +18,109 @@ if (!isset($_SESSION['admin_id'])) {
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
+        body {
+            background-color: #f1f4f9;
+            color: #333;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .container {
+            background: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-top: 50px;
+            max-width: 1000px;
+        }
+
         .card-container {
             display: flex;
             flex-wrap: wrap;
             gap: 1.5rem;
             margin-top: 2rem;
+            justify-content: center;
         }
 
         .card {
             flex: 1;
-            min-width: 300px;
-            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
-            transition: 0.3s;
-            border-radius: 10px;
+            min-width: 280px;
+            max-width: 300px;
+            border: none;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         .card:hover {
-            box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
         }
 
         .card-header {
-            background-color: #007bff;
-            color: #fff;
-            padding: 10px;
             text-align: center;
             font-weight: bold;
-            border-top-left-radius: 10px;
-            border-top-right-radius: 10px;
+            padding: 15px;
+            font-size: 1.25rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
         }
 
         .card-body {
             padding: 20px;
+            text-align: center;
+        }
+
+        .card-body i {
+            font-size: 3rem;
+            margin-bottom: 15px;
         }
 
         .btn-custom {
-            margin: 5px;
+            margin-top: 10px;
+            border-radius: 50px;
+            padding: 10px 20px;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: #00c9a7;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #00a78f;
+        }
+
+        .btn-warning {
+            background-color: #f5b700;
+            border: none;
+        }
+
+        .btn-warning:hover {
+            background-color: #d99a00;
+        }
+
+        .btn-success {
+            background-color: #4caf50;
+            border: none;
+        }
+
+        .btn-success:hover {
+            background-color: #388e3c;
+        }
+
+        @media (max-width: 768px) {
+            .card-container {
+                flex-direction: column;
+                align-items: center;
+            }
         }
     </style>
 </head>
 <body>
-<div class="container mt-5">
+<div class="container">
     <h2 class="text-center">Panel de Administración del Gimnasio</h2>
     <div class="text-right mb-3">
         <p>Administrador: <?= $_SESSION['nombre_usuario'] ?></p>
@@ -70,7 +133,7 @@ if (!isset($_SESSION['admin_id'])) {
                 Usuarios Registrados
             </div>
             <div class="card-body">
-                <p><i class="fas fa-users fa-3x"></i></p>
+                <p><i class="fas fa-users"></i></p>
                 <h4 id="totalUsuarios">Cargando...</h4>
                 <a href="usuarios.php" class="btn btn-primary btn-custom">Ver Usuarios <i class="fas fa-eye"></i></a>
             </div>
@@ -81,7 +144,7 @@ if (!isset($_SESSION['admin_id'])) {
                 Usuarios con Deudas
             </div>
             <div class="card-body">
-                <p><i class="fas fa-exclamation-circle fa-3x"></i></p>
+                <p><i class="fas fa-exclamation-circle"></i></p>
                 <h4 id="totalDeudores">Cargando...</h4>
                 <a href="deudores.php" class="btn btn-warning btn-custom">Ver Deudores <i class="fas fa-money-bill-wave"></i></a>
             </div>
@@ -92,7 +155,7 @@ if (!isset($_SESSION['admin_id'])) {
                 Enviar Recordatorios
             </div>
             <div class="card-body">
-                <p><i class="fas fa-envelope fa-3x"></i></p>
+                <p><i class="fas fa-envelope"></i></p>
                 <h4>Notificar Usuarios Vencidos</h4>
                 <a href="enviar_recordatorios.php" class="btn btn-success btn-custom">Enviar Recordatorios <i class="fas fa-paper-plane"></i></a>
             </div>
