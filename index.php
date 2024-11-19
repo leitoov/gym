@@ -19,13 +19,16 @@ if (!isset($_SESSION['admin_id'])) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
         body {
-            background-color: #f0f4f8;
-            color: #333;
-            font-family: 'Arial', sans-serif;
+            background-color: #fdf2f8;
+            color: #5a5a5a;
         }
 
         .container {
-            padding-top: 2rem;
+            background: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-top: 30px;
         }
 
         .card-container {
@@ -38,68 +41,57 @@ if (!isset($_SESSION['admin_id'])) {
 
         .card {
             flex: 1;
-            min-width: 280px;
-            max-width: 400px;
+            min-width: 300px;
+            max-width: 350px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+            border-radius: 15px;
             border: none;
-            border-radius: 20px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.1);
         }
 
         .card-header {
-            background-color: #007bff;
-            color: #fff;
+            background-color: #ffccd5;
+            color: #5a5a5a;
             padding: 15px;
             text-align: center;
             font-weight: bold;
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
         }
 
         .card-body {
             padding: 25px;
-            text-align: center;
-            background-color: #ffffff;
-            border-bottom-left-radius: 20px;
-            border-bottom-right-radius: 20px;
-        }
-
-        .card-body i {
-            font-size: 3rem;
-            color: #007bff;
-            margin-bottom: 10px;
+            background-color: #ffe4e6;
         }
 
         .btn-custom {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: #fff;
+            margin: 5px;
+            background-color: #fbb1bd;
             border: none;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
+            color: white;
+            font-weight: bold;
         }
 
         .btn-custom:hover {
-            background-color: #0056b3;
-            color: #fff;
+            background-color: #f9869b;
         }
 
         .text-right p {
-            margin: 0;
-            color: #555;
+            color: #7f8c8d;
+            font-size: 1rem;
         }
 
-        @media (max-width: 768px) {
-            .card-container {
-                flex-direction: column;
-                align-items: center;
-            }
+        .btn-danger {
+            background-color: #ff6b6b;
+            border: none;
+        }
+
+        .btn-danger:hover {
+            background-color: #e74c3c;
         }
     </style>
 </head>
@@ -116,32 +108,32 @@ if (!isset($_SESSION['admin_id'])) {
             <div class="card-header">
                 Usuarios Registrados
             </div>
-            <div class="card-body">
-                <i class="fas fa-users"></i>
+            <div class="card-body text-center">
+                <p><i class="fas fa-users fa-3x" style="color: #ffa69e;"></i></p>
                 <h4 id="totalUsuarios">Cargando...</h4>
                 <a href="usuarios.php" class="btn btn-custom">Ver Usuarios <i class="fas fa-eye"></i></a>
             </div>
         </div>
 
         <div class="card">
-            <div class="card-header" style="background-color: #ffc107; color: #fff;">
+            <div class="card-header">
                 Usuarios con Deudas
             </div>
-            <div class="card-body">
-                <i class="fas fa-exclamation-circle"></i>
+            <div class="card-body text-center">
+                <p><i class="fas fa-exclamation-circle fa-3x" style="color: #ffc09f;"></i></p>
                 <h4 id="totalDeudores">Cargando...</h4>
-                <a href="deudores.php" class="btn btn-custom" style="background-color: #ffc107;">Ver Deudores <i class="fas fa-money-bill-wave"></i></a>
+                <a href="deudores.php" class="btn btn-custom">Ver Deudores <i class="fas fa-money-bill-wave"></i></a>
             </div>
         </div>
 
         <div class="card">
-            <div class="card-header" style="background-color: #28a745; color: #fff;">
+            <div class="card-header">
                 Enviar Recordatorios
             </div>
-            <div class="card-body">
-                <i class="fas fa-envelope"></i>
+            <div class="card-body text-center">
+                <p><i class="fas fa-envelope fa-3x" style="color: #ffabab;"></i></p>
                 <h4>Notificar Usuarios Vencidos</h4>
-                <a href="enviar_recordatorios.php" class="btn btn-custom" style="background-color: #28a745;">Enviar Recordatorios <i class="fas fa-paper-plane"></i></a>
+                <a href="enviar_recordatorios.php" class="btn btn-custom">Enviar Recordatorios <i class="fas fa-paper-plane"></i></a>
             </div>
         </div>
     </div>
