@@ -1,12 +1,16 @@
-
 <?php
+// No debe haber ningún espacio o línea en blanco antes de <?php
+ob_start(); // Iniciar el buffer de salida para prevenir cualquier salida accidental
+
 session_start();
 include 'config/conexion.php'; // Incluye la conexión a la base de datos
 
-// Activar la visualización de errores
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
+// Desactivar la salida de errores para evitar problemas de cabeceras
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
 error_reporting(E_ALL);
+ini_set('log_errors', 1);
+ini_set('error_log', 'error_log.txt'); // Guardar errores en un archivo de log
 
 // Verificar si el administrador está autenticado
 if (!isset($_SESSION['admin_id'])) {
@@ -34,6 +38,8 @@ if ($result === false) {
     echo "<p>Error al ejecutar la consulta: " . $conn->error . "</p>";
     exit();
 }
+
+ob_end_flush(); // Finalizar el buffer de salida antes de comenzar el HTML
 ?>
 
 <!DOCTYPE html>
@@ -130,17 +136,12 @@ if ($result === false) {
                         $estadoClase = 'estado-otro';
                         break;
                 }
-
-                // Convertir la fecha a mes y año en español usando DateTime
-                $fecha_generacion = new DateTime($row['fecha_generacion']);
-                $nombre_mes = ucfirst(strftime('%B', $fecha_generacion->getTimestamp()));
-                $anio = $fecha_generacion->format('Y');
                 ?>
                 <div class="debt-card <?php echo $estadoClase; ?>">
-                    <h5><strong>Mes de la Deuda:</strong> <?php echo htmlspecialchars($nombre_mes . ' ' . $anio); ?></h5>
+                    <h5><strong>Mes de la Deuda:</strong> <?php echo date('F Y', strtotime($row['fecha_generacion'])); ?></h5>
                     <p><strong>Monto:</strong> AR$ <?php echo number_format($row['monto'], 2); ?></p>
-                    <p><strong>Fecha de Pago:</strong> <?php echo $row['fecha_pago'] ? htmlspecialchars($row['fecha_pago']) : 'Pendiente'; ?></p>
-                    <p><strong>Estado:</strong> <?php echo htmlspecialchars(ucfirst($row['estado'])); ?></p>
+                    <p><strong>Fecha de Pago:</strong> <?php echo $row['fecha_pago'] ? htmlspecialchars($row['fecha_pago']) : 'No Pagado'; ?></p>
+                    <p><strong>Estado:</strong> <?php echo htmlspecialchars($row['estado']); ?></p>
                 </div>
             <?php endwhile; ?>
         <?php else: ?>
