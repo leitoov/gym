@@ -132,6 +132,8 @@
             transition: var(--transition);
             position: relative;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         .stat-card::before {
@@ -201,6 +203,7 @@
             font-size: 0.9rem;
             color: var(--text-secondary);
             margin-bottom: 1.5rem;
+            flex-grow: 1;
         }
 
         .stat-action {
@@ -216,6 +219,7 @@
             transition: var(--transition);
             box-shadow: 0 4px 15px rgba(159, 122, 234, 0.2);
             margin-top: auto;
+            align-self: flex-start;
         }
 
         .stat-action:hover {
@@ -324,7 +328,7 @@
                 </div>
                 <div class="stat-info">
                     <h3>Sistema de Notificaciones</h3>
-                    <p class="stat-description">Envía recordatorios y notificaciones importantes</p>
+                    <p class="stat-description" style="flex-grow: 1;">Envía recordatorios y notificaciones importantes</p>
                     <a href="enviar_recordatorios.php" class="stat-action">
                         <span class="material-icons">send</span>
                         Enviar Notificaciones
