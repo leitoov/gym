@@ -182,7 +182,7 @@ if (!isset($_SESSION['admin_id'])) {
 
                             deudoresContainer += '</div>'; // Cerrar los detalles del usuario
                             deudoresContainer += '<div class="user-actions">';
-                            deudoresContainer += '<a href="historial.php?id=' + deudor.id_usuario + '" class="btn btn-info btn-custom"><i class="fas fa-history"></i> Ver Historial</a>';
+                            deudoresContainer += '<a href="historial.php?id_usuario=' + deudor.id_usuario + '" class="btn btn-info btn-custom"><i class="fas fa-history"></i> Ver Historial</a>';
                             deudoresContainer += '</div>';
                             deudoresContainer += '</div>'; // Cerrar la información del usuario
                             deudoresContainer += '</div>'; // Cerrar la tarjeta del usuario
