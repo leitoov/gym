@@ -117,7 +117,7 @@ ob_end_flush(); // Finalizar el buffer de salida antes de comenzar el HTML
 <div class="container mt-5">
     <h2 class="text-center mb-4">Historial de Deudas</h2>
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <a href="usuarios_con_deudas.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver a Usuarios con Deudas</a>
+        <a href="deudores.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver a Usuarios con Deudas</a>
     </div>
     <div id="historialContainer">
         <?php if ($result->num_rows > 0): ?>
@@ -126,7 +126,7 @@ ob_end_flush(); // Finalizar el buffer de salida antes de comenzar el HTML
                 // Determinar la clase de color en función del estado
                 $estadoClase = '';
                 switch (strtolower($row['estado'])) {
-                    case 'pagado':
+                    case 'pagada':
                         $estadoClase = 'estado-pagado';
                         break;
                     case 'pendiente':
