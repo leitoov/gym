@@ -3,7 +3,7 @@
 ob_start(); // Iniciar el buffer de salida para prevenir cualquier salida accidental
 
 session_start();
-include 'conexion.php'; // Incluye la conexión a la base de datos
+include 'config/conexion.php'; // Incluye la conexión a la base de datos
 
 // Desactivar la salida de errores para evitar problemas de cabeceras
 ini_set('display_errors', 0);
