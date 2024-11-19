@@ -269,8 +269,10 @@ if (!isset($_SESSION['admin_id'])) {
             method: 'GET',
             dataType: 'json',
             success: function(response) {
+                console.log(response); // Añade esto para ver la respuesta completa en la consola del navegador
                 if (response.status === 'success') {
-                    $('#deudaTotal').text(response.deuda_total.toFixed(2));
+                    let deudaTotal = parseFloat(response.deuda_total); // Asegúrate de convertir el valor a tipo float
+                    $('#deudaTotal').text(deudaTotal.toFixed(2)); // Actualiza el HTML con la deuda total
                 } else {
                     Swal.fire('Error', response.message, 'error');
                 }
