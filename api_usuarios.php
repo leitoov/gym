@@ -84,28 +84,39 @@ switch ($action) {
         break;
 
     case 'usuarios':
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             error_log("Ejecutando acción 'usuarios'");
-            // Obtener todos los usuarios
-            $sql_usuarios = "SELECT * FROM usuarios";
+                
+                // Obtener todos los usuarios y calcular la deuda acumulada
+            $sql_usuarios = "SELECT u.*, 
+                            (SELECT SUM(d.monto) 
+                            FROM deudas d 
+                            WHERE d.id_usuario = u.id_usuario AND d.estado = 'pendiente') AS deuda_total
+                            FROM usuarios u";
+                             
             $usuarios = ejecutarConsulta($sql_usuarios, $conn);
-
+        
             if (isset($usuarios['error'])) {
                 $response['message'] = 'Error al obtener usuarios: ' . $usuarios['error'];
             } else {
+                // Formatear la respuesta con los usuarios y su deuda total acumulada
                 $response = [
                     'status' => 'success',
-                    'usuarios' => $usuarios
+                    'usuarios' => array_map(function($usuario) {
+                        // Asegurarnos de que la deuda sea al menos 0 si no tiene deudas
+                        $usuario['deuda'] = $usuario['deuda_total'] ? floatval($usuario['deuda_total']) : 0.0;
+                        unset($usuario['deuda_total']); // Remover el campo innecesario
+                        return $usuario;
+                    }, $usuarios)
                 ];
             }
-
+        
             echo json_encode($response);
             die();
         } else {
             error_log("Método HTTP incorrecto para la acción 'usuarios'");
         }
         break;
-
     case 'deudores':
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             error_log("Ejecutando acción 'deudores'");
