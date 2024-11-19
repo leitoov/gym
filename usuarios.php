@@ -69,6 +69,19 @@ if (!isset($_SESSION['admin_id'])) {
                 margin-top: 15px;
             }
         }
+
+        .total-deuda-container {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 15px;
+            background-color: #f8f9fa;
+        }
+
+        .total-deuda-container h4 {
+            margin: 0;
+        }
     </style>
 </head>
 <body>
@@ -78,6 +91,12 @@ if (!isset($_SESSION['admin_id'])) {
         <a href="index.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver al Panel</a>
         <a href="#" class="btn btn-success" data-toggle="modal" data-target="#añadirUsuarioModal"><i class="fas fa-user-plus"></i> Añadir Usuario</a>
     </div>
+    
+    <!-- Contenedor de la deuda total -->
+    <div id="deudaTotalContainer" class="total-deuda-container">
+        <h4>Total Deuda Pendiente: AR$ <span id="deudaTotal">0.00</span></h4>
+    </div>
+
     <div id="usuariosContainer">
         <!-- Los usuarios se cargarán dinámicamente usando AJAX -->
     </div>
@@ -198,9 +217,10 @@ if (!isset($_SESSION['admin_id'])) {
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.26/dist/sweetalert2.all.min.js"></script>
 
 <script>
-    // Cargar usuarios en el contenedor
+    // Cargar usuarios y deuda total en el contenedor
     $(document).ready(function() {
         cargarUsuarios();
+        cargarDeudaTotal();
     });
 
     function cargarUsuarios() {
@@ -233,6 +253,24 @@ if (!isset($_SESSION['admin_id'])) {
                     });
 
                     $('#usuariosContainer').html(usuariosContainer);
+                } else {
+                    Swal.fire('Error', response.message, 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error en la solicitud AJAX:', status, error);
+            }
+        });
+    }
+
+    function cargarDeudaTotal() {
+        $.ajax({
+            url: 'api_usuarios.php?action=total_deuda',
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    $('#deudaTotal').text(response.deuda_total.toFixed(2));
                 } else {
                     Swal.fire('Error', response.message, 'error');
                 }
@@ -285,6 +323,7 @@ if (!isset($_SESSION['admin_id'])) {
                     $('#editarUsuarioModal').modal('hide');
                     Swal.fire('Éxito', 'Usuario actualizado correctamente', 'success').then(() => {
                         cargarUsuarios(); // Recargar los usuarios después de actualizar
+                        cargarDeudaTotal(); // Actualizar la deuda total después de actualizar un usuario
                     });
                 } else {
                     Swal.fire('Error', response.message, 'error');
@@ -311,6 +350,7 @@ if (!isset($_SESSION['admin_id'])) {
                     $('#añadirUsuarioModal').modal('hide');
                     Swal.fire('Éxito', 'Usuario añadido correctamente', 'success').then(() => {
                         cargarUsuarios(); // Recargar los usuarios después de añadir
+                        cargarDeudaTotal(); // Actualizar la deuda total después de añadir un usuario
                     });
                 } else {
                     Swal.fire('Error', response.message, 'error');

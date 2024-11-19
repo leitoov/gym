@@ -158,7 +158,7 @@ switch ($action) {
         } else {
             error_log("Método HTTP incorrecto para la acción 'deudores'");
         }
-    break;
+        break;
     case 'usuario':
         if ($id !== null && $_SERVER['REQUEST_METHOD'] === 'GET') {
             error_log("Ejecutando acción 'usuario' con ID: $id");
@@ -260,7 +260,28 @@ switch ($action) {
             error_log("Método HTTP incorrecto para la acción 'marcar_deuda_pagada'");
         }
         break;
-
+    case 'total_deuda':
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            error_log("Ejecutando acción 'total_deuda'");
+            // Obtener la deuda total de todos los usuarios con deudas pendientes
+            $sql_total_deuda = "SELECT SUM(monto) AS deuda_total FROM deudas WHERE estado = 'pendiente'";
+            $resultado_total_deuda = ejecutarConsulta($sql_total_deuda, $conn);
+        
+            if (isset($resultado_total_deuda['error'])) {
+                $response['message'] = 'Error al obtener la deuda total: ' . $resultado_total_deuda['error'];
+            } else {
+                $response = [
+                    'status' => 'success',
+                    'deuda_total' => $resultado_total_deuda[0]['deuda_total'] !== null ? $resultado_total_deuda[0]['deuda_total'] : 0
+                ];
+            }
+            echo json_encode($response);
+            die();
+        } else {
+            error_log("Método HTTP incorrecto para la acción 'total_deuda'");
+        }
+        break;
+    
     default:
         error_log("Acción no válida o no especificada: $action");
         echo json_encode($response);

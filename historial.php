@@ -132,7 +132,7 @@ if ($origen === "usuarios") {
 <div class="container mt-5">
     <h2 class="text-center mb-4">Historial de Deudas</h2>
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <a href="<?php echo htmlspecialchars($volver_a); ?>" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver a Usuarios con Deudas</a>
+        <a href="<?php echo htmlspecialchars($volver_a); ?>" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver</a>
     </div>
     <div id="historialContainer">
         <?php if ($result->num_rows > 0): ?>
