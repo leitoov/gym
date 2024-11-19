@@ -328,6 +328,7 @@
                 </div>
                 <div class="stat-info">
                     <h3>Sistema de Notificaciones</h3>
+                    <div class="stat-number" style="color:transparent!important;">0</div>
                     <p class="stat-description" style="flex-grow: 1;">Envía recordatorios y notificaciones importantes</p>
                     <a href="enviar_recordatorios.php" class="stat-action">
                         <span class="material-icons">send</span>
