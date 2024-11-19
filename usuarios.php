@@ -226,7 +226,7 @@ if (!isset($_SESSION['admin_id'])) {
                         usuariosContainer += '</div>';
                         usuariosContainer += '<div class="user-actions">';
                         usuariosContainer += '<button onclick="abrirModalEdicion(' + usuario.id_usuario + ')" class="btn btn-warning btn-custom"><i class="fas fa-edit"></i> Editar</button>';
-                        usuariosContainer += '<a href="ver_historial.php?id=' + usuario.id_usuario + '" class="btn btn-info btn-custom"><i class="fas fa-history"></i> Ver Historial</a>';
+                        usuariosContainer += '<a href="historial.php?id=' + usuario.id_usuario + '" class="btn btn-info btn-custom"><i class="fas fa-history"></i> Ver Historial</a>';
                         usuariosContainer += '</div>';
                         usuariosContainer += '</div>';
                         usuariosContainer += '</div>';
