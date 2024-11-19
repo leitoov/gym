@@ -1,3 +1,4 @@
+
 <?php
 session_start();
 include 'config/conexion.php'; // Incluye la conexión a la base de datos
@@ -130,12 +131,13 @@ if ($result === false) {
                         break;
                 }
 
-                // Convertir la fecha a mes y año en español
-                setlocale(LC_TIME, 'es_ES.UTF-8');
-                $fecha_generacion = $row['fecha_generacion'] ? strftime('%B %Y', strtotime($row['fecha_generacion'])) : 'No especificado';
+                // Convertir la fecha a mes y año en español usando DateTime
+                $fecha_generacion = new DateTime($row['fecha_generacion']);
+                $nombre_mes = ucfirst(strftime('%B', $fecha_generacion->getTimestamp()));
+                $anio = $fecha_generacion->format('Y');
                 ?>
                 <div class="debt-card <?php echo $estadoClase; ?>">
-                    <h5><strong>Mes de la Deuda:</strong> <?php echo htmlspecialchars(ucfirst($fecha_generacion)); ?></h5>
+                    <h5><strong>Mes de la Deuda:</strong> <?php echo htmlspecialchars($nombre_mes . ' ' . $anio); ?></h5>
                     <p><strong>Monto:</strong> AR$ <?php echo number_format($row['monto'], 2); ?></p>
                     <p><strong>Fecha de Pago:</strong> <?php echo $row['fecha_pago'] ? htmlspecialchars($row['fecha_pago']) : 'Pendiente'; ?></p>
                     <p><strong>Estado:</strong> <?php echo htmlspecialchars(ucfirst($row['estado'])); ?></p>
