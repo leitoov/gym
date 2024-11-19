@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración - Gimnasio</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         :root {
             --primary: #9F7AEA;
@@ -280,7 +281,7 @@
                 </div>
                 <span>Admin: <?= $_SESSION['nombre_usuario'] ?></span>
                 <button class="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="material-icons">logout</span>
                     Cerrar Sesión
                 </button>
             </div>
@@ -289,14 +290,14 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon">
-                    <i class="fas fa-users"></i>
+                    <span class="material-icons">groups</span>
                 </div>
                 <div class="stat-info">
                     <h3>Usuarios Registrados</h3>
                     <div class="stat-number" id="totalUsuarios">0</div>
                     <p class="stat-description">Total de miembros activos en el gimnasio</p>
                     <a href="usuarios.php" class="stat-action">
-                        <i class="fas fa-eye"></i>
+                        <span class="material-icons">visibility</span>
                         Ver Usuarios
                     </a>
                 </div>
@@ -304,14 +305,14 @@
 
             <div class="stat-card">
                 <div class="stat-icon">
-                    <i class="fas fa-exclamation-circle"></i>
+                    <span class="material-icons">warning</span>
                 </div>
                 <div class="stat-info">
                     <h3>Pagos Pendientes</h3>
                     <div class="stat-number" id="totalDeudores">0</div>
                     <p class="stat-description">Usuarios con pagos pendientes este mes</p>
                     <a href="deudores.php" class="stat-action">
-                        <i class="fas fa-money-bill-wave"></i>
+                        <span class="material-icons">attach_money</span>
                         Ver Deudores
                     </a>
                 </div>
@@ -319,13 +320,13 @@
 
             <div class="stat-card">
                 <div class="stat-icon">
-                    <i class="fas fa-bell"></i>
+                    <span class="material-icons">notifications</span>
                 </div>
                 <div class="stat-info">
                     <h3>Sistema de Notificaciones</h3>
                     <p class="stat-description">Envía recordatorios y notificaciones importantes</p>
                     <a href="enviar_recordatorios.php" class="stat-action">
-                        <i class="fas fa-paper-plane"></i>
+                        <span class="material-icons">send</span>
                         Enviar Notificaciones
                     </a>
                 </div>
