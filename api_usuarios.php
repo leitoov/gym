@@ -231,12 +231,15 @@ switch ($action) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = json_decode(file_get_contents("php://input"), true);
             $id_deuda = isset($data['id_deuda']) ? intval($data['id_deuda']) : null;
-
+    
             if ($id_deuda !== null) {
                 error_log("Ejecutando acción 'marcar_deuda_pagada' para ID de deuda: $id_deuda");
                 // Marcar la deuda específica como pagada
-                $sql_marcar_pagada = "UPDATE deudas SET estado = 'pagado' WHERE id_deuda = $id_deuda AND estado = 'pendiente'";
-
+                $fecha_pago = date('Y-m-d'); // Obtener la fecha actual
+                $sql_marcar_pagada = "UPDATE deudas 
+                                      SET estado = 'pagada', fecha_pago = '$fecha_pago' 
+                                      WHERE id_deuda = $id_deuda AND estado = 'pendiente'";
+        
                 if ($conn->query($sql_marcar_pagada) === TRUE) {
                     $response = [
                         'status' => 'success',
@@ -246,7 +249,7 @@ switch ($action) {
                     $response['message'] = 'Error al actualizar deuda: ' . $conn->error;
                     error_log($response['message']);
                 }
-
+        
                 echo json_encode($response);
                 die();
             } else {

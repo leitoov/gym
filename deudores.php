@@ -4,7 +4,7 @@ include 'conexion.php'; // Incluye la conexión a la base de datos
 
 // Verificar si el administrador está autenticado
 if (!isset($_SESSION['admin_id'])) {
-    header('Location: login.php');
+    header('Location: index.html');
     exit();
 }
 ?>
