@@ -140,12 +140,12 @@ ob_end_flush(); // Finalizar el buffer de salida antes de comenzar el HTML
                         break;
                 }
 
-                // Formatear la fecha de generación en español
-                $fecha_generacion = strftime('%B %Y', strtotime($row['fecha_generacion']));
-                $fecha_generacion = ucfirst($fecha_generacion); // Capitalizar la primera letra del mes
+                // Usar DateTime para manejar la fecha de generación y obtener el mes en español
+                $fecha_generacion = new DateTime($row['fecha_generacion']);
+                $mes_en_espanol = strftime('%B %Y', $fecha_generacion->getTimestamp());
                 ?>
                 <div class="debt-card <?php echo $estadoClase; ?>">
-                    <h5><strong>Mes de la Deuda:</strong> <?php echo htmlspecialchars($fecha_generacion); ?></h5>
+                    <h5><strong>Mes de la Deuda:</strong> <?php echo ucfirst($mes_en_espanol); ?></h5>
                     <p><strong>Monto:</strong> AR$ <?php echo number_format($row['monto'], 2); ?></p>
                     <p><strong>Fecha de Pago:</strong> <?php echo $row['fecha_pago'] ? htmlspecialchars($row['fecha_pago']) : 'No Pagado'; ?></p>
                     <p><strong>Estado:</strong> <?php echo htmlspecialchars($row['estado']); ?></p>
