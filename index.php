@@ -131,9 +131,6 @@
             transition: var(--transition);
             position: relative;
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
 
         .stat-card::before {
@@ -217,7 +214,7 @@
             font-weight: 500;
             transition: var(--transition);
             box-shadow: 0 4px 15px rgba(159, 122, 234, 0.2);
-            margin-top: auto; /* Align button to the bottom */
+            margin-top: auto;
         }
 
         .stat-action:hover {
