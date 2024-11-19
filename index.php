@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'config/conexion.php'; // Incluye la conexión a la base de datos
+include 'conexion.php'; // Incluye la conexión a la base de datos
 
 // Verificar si el administrador está autenticado
 if (!isset($_SESSION['admin_id'])) {
@@ -19,24 +19,19 @@ if (!isset($_SESSION['admin_id'])) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
         body {
-            background-color: #f1f4f9;
+            background-color: #f0f4f8;
             color: #333;
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Arial', sans-serif;
         }
 
         .container {
-            background: #ffffff;
-            border-radius: 15px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            margin-top: 50px;
-            max-width: 1000px;
+            padding-top: 2rem;
         }
 
         .card-container {
             display: flex;
             flex-wrap: wrap;
-            gap: 1.5rem;
+            gap: 2rem;
             margin-top: 2rem;
             justify-content: center;
         }
@@ -44,71 +39,60 @@ if (!isset($_SESSION['admin_id'])) {
         .card {
             flex: 1;
             min-width: 280px;
-            max-width: 300px;
+            max-width: 400px;
             border: none;
-            border-radius: 15px;
-            transition: all 0.3s ease;
-            background: linear-gradient(to right, #6a11cb, #2575fc);
-            color: white;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.1);
         }
 
         .card-header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 15px;
             text-align: center;
             font-weight: bold;
-            padding: 15px;
-            font-size: 1.25rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
         }
 
         .card-body {
-            padding: 20px;
+            padding: 25px;
             text-align: center;
+            background-color: #ffffff;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
         }
 
         .card-body i {
             font-size: 3rem;
-            margin-bottom: 15px;
+            color: #007bff;
+            margin-bottom: 10px;
         }
 
         .btn-custom {
-            margin-top: 10px;
-            border-radius: 50px;
+            margin-top: 20px;
             padding: 10px 20px;
-            font-weight: bold;
-            transition: background 0.3s ease;
-        }
-
-        .btn-primary {
-            background-color: #00c9a7;
+            background-color: #007bff;
+            color: #fff;
             border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
         }
 
-        .btn-primary:hover {
-            background-color: #00a78f;
+        .btn-custom:hover {
+            background-color: #0056b3;
+            color: #fff;
         }
 
-        .btn-warning {
-            background-color: #f5b700;
-            border: none;
-        }
-
-        .btn-warning:hover {
-            background-color: #d99a00;
-        }
-
-        .btn-success {
-            background-color: #4caf50;
-            border: none;
-        }
-
-        .btn-success:hover {
-            background-color: #388e3c;
+        .text-right p {
+            margin: 0;
+            color: #555;
         }
 
         @media (max-width: 768px) {
@@ -133,31 +117,31 @@ if (!isset($_SESSION['admin_id'])) {
                 Usuarios Registrados
             </div>
             <div class="card-body">
-                <p><i class="fas fa-users"></i></p>
+                <i class="fas fa-users"></i>
                 <h4 id="totalUsuarios">Cargando...</h4>
-                <a href="usuarios.php" class="btn btn-primary btn-custom">Ver Usuarios <i class="fas fa-eye"></i></a>
+                <a href="usuarios.php" class="btn btn-custom">Ver Usuarios <i class="fas fa-eye"></i></a>
             </div>
         </div>
 
         <div class="card">
-            <div class="card-header">
+            <div class="card-header" style="background-color: #ffc107; color: #fff;">
                 Usuarios con Deudas
             </div>
             <div class="card-body">
-                <p><i class="fas fa-exclamation-circle"></i></p>
+                <i class="fas fa-exclamation-circle"></i>
                 <h4 id="totalDeudores">Cargando...</h4>
-                <a href="deudores.php" class="btn btn-warning btn-custom">Ver Deudores <i class="fas fa-money-bill-wave"></i></a>
+                <a href="deudores.php" class="btn btn-custom" style="background-color: #ffc107;">Ver Deudores <i class="fas fa-money-bill-wave"></i></a>
             </div>
         </div>
 
         <div class="card">
-            <div class="card-header">
+            <div class="card-header" style="background-color: #28a745; color: #fff;">
                 Enviar Recordatorios
             </div>
             <div class="card-body">
-                <p><i class="fas fa-envelope"></i></p>
+                <i class="fas fa-envelope"></i>
                 <h4>Notificar Usuarios Vencidos</h4>
-                <a href="enviar_recordatorios.php" class="btn btn-success btn-custom">Enviar Recordatorios <i class="fas fa-paper-plane"></i></a>
+                <a href="enviar_recordatorios.php" class="btn btn-custom" style="background-color: #28a745;">Enviar Recordatorios <i class="fas fa-paper-plane"></i></a>
             </div>
         </div>
     </div>
