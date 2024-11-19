@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'conexion.php'; // Incluye la conexión a la base de datos
+include 'config/conexion.php'; // Incluye la conexión a la base de datos
 
 // Activar la visualización de errores
 ini_set('display_errors', 1);
@@ -69,6 +69,23 @@ if ($result === false) {
             transform: scale(1.02);
         }
 
+        /* Colores por estado */
+        .estado-pagado {
+            border-left: 5px solid #28a745; /* Verde */
+        }
+
+        .estado-pendiente {
+            border-left: 5px solid #ffc107; /* Amarillo */
+        }
+
+        .estado-vencida {
+            border-left: 5px solid #dc3545; /* Rojo */
+        }
+
+        .estado-otro {
+            border-left: 5px solid #6c757d; /* Gris */
+        }
+
         /* Estilo para el empty state */
         .empty-state {
             text-align: center;
@@ -95,11 +112,33 @@ if ($result === false) {
     <div id="historialContainer">
         <?php if ($result->num_rows > 0): ?>
             <?php while ($row = $result->fetch_assoc()): ?>
-                <div class="debt-card">
-                    <h5><strong>Mes de la Deuda:</strong> <?php echo date('F Y', strtotime($row['fecha_generacion'])); ?></h5>
+                <?php
+                // Determinar la clase de color en función del estado
+                $estadoClase = '';
+                switch (strtolower($row['estado'])) {
+                    case 'pagado':
+                        $estadoClase = 'estado-pagado';
+                        break;
+                    case 'pendiente':
+                        $estadoClase = 'estado-pendiente';
+                        break;
+                    case 'vencida':
+                        $estadoClase = 'estado-vencida';
+                        break;
+                    default:
+                        $estadoClase = 'estado-otro';
+                        break;
+                }
+
+                // Convertir la fecha a mes y año en español
+                setlocale(LC_TIME, 'es_ES.UTF-8');
+                $fecha_generacion = $row['fecha_generacion'] ? strftime('%B %Y', strtotime($row['fecha_generacion'])) : 'No especificado';
+                ?>
+                <div class="debt-card <?php echo $estadoClase; ?>">
+                    <h5><strong>Mes de la Deuda:</strong> <?php echo htmlspecialchars(ucfirst($fecha_generacion)); ?></h5>
                     <p><strong>Monto:</strong> AR$ <?php echo number_format($row['monto'], 2); ?></p>
-                    <p><strong>Fecha de Pago:</strong> <?php echo $row['fecha_pago'] ? htmlspecialchars($row['fecha_pago']) : 'No Pagado'; ?></p>
-                    <p><strong>Estado:</strong> <?php echo htmlspecialchars($row['estado']); ?></p>
+                    <p><strong>Fecha de Pago:</strong> <?php echo $row['fecha_pago'] ? htmlspecialchars($row['fecha_pago']) : 'Pendiente'; ?></p>
+                    <p><strong>Estado:</strong> <?php echo htmlspecialchars(ucfirst($row['estado'])); ?></p>
                 </div>
             <?php endwhile; ?>
         <?php else: ?>
