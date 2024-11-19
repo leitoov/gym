@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'config/conexion.php'; // Incluye la conexión a la base de datos
+include 'conexion.php'; // Incluye la conexión a la base de datos
 
 // Activar la visualización de errores
 ini_set('display_errors', 1);
@@ -96,9 +96,8 @@ if ($result === false) {
         <?php if ($result->num_rows > 0): ?>
             <?php while ($row = $result->fetch_assoc()): ?>
                 <div class="debt-card">
-                    <h5><strong>Mes de la Deuda:</strong> <?php echo htmlspecialchars($row['fecha_generacion']); ?></h5>
+                    <h5><strong>Mes de la Deuda:</strong> <?php echo date('F Y', strtotime($row['fecha_generacion'])); ?></h5>
                     <p><strong>Monto:</strong> AR$ <?php echo number_format($row['monto'], 2); ?></p>
-                    <p><strong>Fecha Límite de Pago:</strong> <?php echo htmlspecialchars($row['fecha_vencimiento']); ?></p>
                     <p><strong>Fecha de Pago:</strong> <?php echo $row['fecha_pago'] ? htmlspecialchars($row['fecha_pago']) : 'No Pagado'; ?></p>
                     <p><strong>Estado:</strong> <?php echo htmlspecialchars($row['estado']); ?></p>
                 </div>
