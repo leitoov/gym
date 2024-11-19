@@ -43,6 +43,21 @@ if ($result === false) {
 }
 
 ob_end_flush(); // Finalizar el buffer de salida antes de comenzar el HTML
+
+// Obtener la URL de referencia para determinar de dónde se llegó
+$origen = isset($_GET['origen']) ? $_GET['origen'] : null;
+$referer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
+
+$volver_a = "index.php"; // Valor por defecto
+if ($origen === "usuarios") {
+    $volver_a = "usuarios.php";
+} elseif ($origen === "deudores") {
+    $volver_a = "deudores.php";
+} elseif (strpos($referer, 'usuarios.php') !== false) {
+    $volver_a = "usuarios.php";
+} elseif (strpos($referer, 'deudores.php') !== false) {
+    $volver_a = "deudores.php";
+}
 ?>
 
 <!DOCTYPE html>
@@ -117,7 +132,7 @@ ob_end_flush(); // Finalizar el buffer de salida antes de comenzar el HTML
 <div class="container mt-5">
     <h2 class="text-center mb-4">Historial de Deudas</h2>
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <a href="deudores.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver a Usuarios con Deudas</a>
+        <a href="<?php echo htmlspecialchars($volver_a); ?>" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver a Usuarios con Deudas</a>
     </div>
     <div id="historialContainer">
         <?php if ($result->num_rows > 0): ?>
