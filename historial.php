@@ -9,7 +9,7 @@ if (!isset($_SESSION['admin_id'])) {
 }
 
 // Obtener ID de usuario
-$id_usuario = isset($_GET['id_usuario']) ? intval($_GET['id_usuario']) : null;
+$id_usuario = isset($_GET['id']) ? intval($_GET['id']) : null;
 if ($id_usuario === null) {
     echo "<p>Error: ID de usuario no proporcionado.</p>";
     exit();
