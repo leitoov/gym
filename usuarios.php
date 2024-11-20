@@ -275,7 +275,7 @@ if (!isset($_SESSION['admin_id'])) {
                             <div class="user-card">
                                 <div class="user-info">
                                     <div class="user-photo">
-                                        ${usuario.foto ? `<img src="${usuario.foto}" alt="Foto de ${usuario.nombre}">` : '<img src="default-user.png" alt="Foto de usuario">'}
+                                        ${usuario.foto ? `<img src="${usuario.foto}" alt="Foto de ${usuario.nombre}">` : '<img src="uploads/descarga.png" alt="Foto de usuario">'}
                                     </div>
                                     <div class="user-details">
                                         <h5>${usuario.nombre} ${usuario.apellido}</h5>
