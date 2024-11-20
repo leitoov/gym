@@ -14,13 +14,14 @@ if (!isset($_SESSION['admin_id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Usuarios Registrados - Gimnasio</title>
+    <title>Credenciales de Usuarios - Gimnasio</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.26/dist/sweetalert2.min.css">
     <style>
         body {
             background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif;
         }
 
         .container {
@@ -28,6 +29,8 @@ if (!isset($_SESSION['admin_id'])) {
             border-radius: 15px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             padding: 30px;
+            max-width: 1200px;
+            margin: auto;
         }
 
         .user-card {
@@ -46,12 +49,35 @@ if (!isset($_SESSION['admin_id'])) {
 
         .user-info {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+        }
+
+        .user-photo {
+            flex: 0 0 100px;
+            height: 100px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-right: 20px;
+        }
+
+        .user-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .user-details {
             flex: 1;
+        }
+
+        .user-details h5 {
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .user-details p {
+            margin-bottom: 5px;
+            font-size: 0.9rem;
         }
 
         .user-actions {
@@ -82,11 +108,15 @@ if (!isset($_SESSION['admin_id'])) {
         .total-deuda-container h4 {
             margin: 0;
         }
+
+        .btn-custom {
+            width: 100%;
+        }
     </style>
 </head>
 <body>
 <div class="container mt-5">
-    <h2 class="text-center mb-4">Usuarios Registrados</h2>
+    <h2 class="text-center mb-4">Credenciales de Usuarios del Gimnasio</h2>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <a href="index.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver al Panel</a>
         <a href="#" class="btn btn-success" data-toggle="modal" data-target="#anadirUsuarioModal"><i class="fas fa-user-plus"></i> Añadir Usuario</a>
@@ -244,6 +274,9 @@ if (!isset($_SESSION['admin_id'])) {
                         usuariosContainer += `
                             <div class="user-card">
                                 <div class="user-info">
+                                    <div class="user-photo">
+                                        ${usuario.foto ? `<img src="${usuario.foto}" alt="Foto de ${usuario.nombre}">` : '<img src="default-user.png" alt="Foto de usuario">'}
+                                    </div>
                                     <div class="user-details">
                                         <h5>${usuario.nombre} ${usuario.apellido}</h5>
                                         <p><strong>Teléfono:</strong> ${usuario.telefono}</p>
@@ -251,7 +284,6 @@ if (!isset($_SESSION['admin_id'])) {
                                         <p><strong>Plan:</strong> ${usuario.plan}</p>
                                         <p><strong>Fecha de Vencimiento:</strong> ${usuario.fecha_vencimiento}</p>
                                         <p><strong>Deuda:</strong> AR$ ${usuario.deuda}</p>
-                                        ${usuario.foto ? `<img src="${usuario.foto}" alt="Foto de ${usuario.nombre}" style="max-width: 100px;">` : ''}
                                     </div>
                                     <div class="user-actions">
                                         <button onclick="abrirModalEdicion(${usuario.id_usuario})" class="btn btn-warning btn-custom"><i class="fas fa-edit"></i> Editar</button>
