@@ -54,14 +54,6 @@ if (!isset($_SESSION['admin_id'])) {
             flex: 1;
         }
 
-        .user-photo {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 50%;
-            margin-right: 20px;
-        }
-
         .user-actions {
             display: flex;
             gap: 10px;
@@ -155,8 +147,8 @@ if (!isset($_SESSION['admin_id'])) {
                         <input type="number" class="form-control" id="añadirDeuda" name="deuda" step="0.01" required>
                     </div>
                     <div class="form-group">
-                        <label for="añadirFoto">Foto de Perfil</label>
-                        <input type="file" class="form-control-file" id="añadirFoto" name="foto" accept="image/*">
+                        <label for="añadirFoto">Foto</label>
+                        <input type="file" class="form-control" id="añadirFoto" name="foto" accept="image/*">
                     </div>
                 </form>
             </div>
@@ -174,7 +166,6 @@ if (!isset($_SESSION['admin_id'])) {
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.26/dist/sweetalert2.all.min.js"></script>
 
 <script>
-    // Cargar usuarios y deuda total en el contenedor
     $(document).ready(function() {
         cargarUsuarios();
         cargarDeudaTotal();
@@ -191,23 +182,25 @@ if (!isset($_SESSION['admin_id'])) {
                     let usuariosContainer = '';
 
                     usuarios.forEach(function(usuario) {
-                        usuariosContainer += '<div class="user-card">';
-                        usuariosContainer += '<div class="user-info">';
-                        usuariosContainer += '<img src="' + (usuario.foto ? usuario.foto : 'default-avatar.png') + '" alt="Foto de Perfil" class="user-photo">';
-                        usuariosContainer += '<div class="user-details">';
-                        usuariosContainer += '<h5>' + usuario.nombre + ' ' + usuario.apellido + '</h5>';
-                        usuariosContainer += '<p><strong>Teléfono:</strong> ' + usuario.telefono + '</p>';
-                        usuariosContainer += '<p><strong>Correo Electrónico:</strong> ' + usuario.email + '</p>';
-                        usuariosContainer += '<p><strong>Plan:</strong> ' + usuario.plan + '</p>';
-                        usuariosContainer += '<p><strong>Fecha de Vencimiento:</strong> ' + usuario.fecha_vencimiento + '</p>';
-                        usuariosContainer += '<p><strong>Deuda:</strong> AR$ ' + usuario.deuda + '</p>';
-                        usuariosContainer += '</div>';
-                        usuariosContainer += '<div class="user-actions">';
-                        usuariosContainer += '<button onclick="abrirModalEdicion(' + usuario.id_usuario + ')" class="btn btn-warning btn-custom"><i class="fas fa-edit"></i> Editar</button>';
-                        usuariosContainer += '<a href="historial.php?id_usuario=' + usuario.id_usuario + '" class="btn btn-info btn-custom"><i class="fas fa-history"></i> Ver Historial</a>';
-                        usuariosContainer += '</div>';
-                        usuariosContainer += '</div>';
-                        usuariosContainer += '</div>';
+                        usuariosContainer += `
+                            <div class="user-card">
+                                <div class="user-info">
+                                    <div class="user-details">
+                                        <h5>${usuario.nombre} ${usuario.apellido}</h5>
+                                        <p><strong>Teléfono:</strong> ${usuario.telefono}</p>
+                                        <p><strong>Correo Electrónico:</strong> ${usuario.email}</p>
+                                        <p><strong>Plan:</strong> ${usuario.plan}</p>
+                                        <p><strong>Fecha de Vencimiento:</strong> ${usuario.fecha_vencimiento}</p>
+                                        <p><strong>Deuda:</strong> AR$ ${usuario.deuda}</p>
+                                        ${usuario.foto ? `<img src="uploads/${usuario.foto}" alt="Foto de ${usuario.nombre}" style="max-width: 100px;">` : ''}
+                                    </div>
+                                    <div class="user-actions">
+                                        <button onclick="abrirModalEdicion(${usuario.id_usuario})" class="btn btn-warning btn-custom"><i class="fas fa-edit"></i> Editar</button>
+                                        <a href="historial.php?id_usuario=${usuario.id_usuario}" class="btn btn-info btn-custom"><i class="fas fa-history"></i> Ver Historial</a>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
                     });
 
                     $('#usuariosContainer').html(usuariosContainer);
@@ -239,6 +232,34 @@ if (!isset($_SESSION['admin_id'])) {
             }
         });
     }
+
+    $('#guardarNuevoUsuario').click(function() {
+        let formData = new FormData($('#añadirUsuarioForm')[0]);
+
+        $.ajax({
+            url: 'api_usuarios.php?action=añadir',
+            method: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    $('#añadirUsuarioModal').modal('hide');
+                    Swal.fire('Éxito', 'Usuario añadido correctamente', 'success').then(() => {
+                        cargarUsuarios();
+                        cargarDeudaTotal();
+                    });
+                } else {
+                    Swal.fire('Error', response.message, 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error en la solicitud AJAX:', status, error);
+                Swal.fire('Error', 'Hubo un problema al añadir el usuario', 'error');
+            }
+        });
+    });
 </script>
 </body>
 </html>
