@@ -54,6 +54,14 @@ if (!isset($_SESSION['admin_id'])) {
             flex: 1;
         }
 
+        .user-photo {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin-right: 20px;
+        }
+
         .user-actions {
             display: flex;
             gap: 10px;
@@ -113,7 +121,7 @@ if (!isset($_SESSION['admin_id'])) {
                 </button>
             </div>
             <div class="modal-body">
-                <form id="añadirUsuarioForm">
+                <form id="añadirUsuarioForm" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="añadirNombre">Nombre</label>
                         <input type="text" class="form-control" id="añadirNombre" name="nombre" required>
@@ -146,66 +154,15 @@ if (!isset($_SESSION['admin_id'])) {
                         <label for="añadirDeuda">Deuda (AR$)</label>
                         <input type="number" class="form-control" id="añadirDeuda" name="deuda" step="0.01" required>
                     </div>
+                    <div class="form-group">
+                        <label for="añadirFoto">Foto de Perfil</label>
+                        <input type="file" class="form-control-file" id="añadirFoto" name="foto" accept="image/*">
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-primary" id="guardarNuevoUsuario">Guardar Usuario</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal para editar usuario -->
-<div class="modal fade" id="editarUsuarioModal" tabindex="-1" role="dialog" aria-labelledby="editarUsuarioLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editarUsuarioLabel">Editar Usuario</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="editarUsuarioForm">
-                    <div class="form-group">
-                        <label for="editarNombre">Nombre</label>
-                        <input type="text" class="form-control" id="editarNombre" name="nombre" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editarApellido">Apellido</label>
-                        <input type="text" class="form-control" id="editarApellido" name="apellido" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editarTelefono">Teléfono</label>
-                        <input type="text" class="form-control" id="editarTelefono" name="telefono" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editarEmail">Correo Electrónico</label>
-                        <input type="email" class="form-control" id="editarEmail" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editarPlan">Plan</label>
-                        <select class="form-control" id="editarPlan" name="plan" required>
-                            <option value="Básico">Básico</option>
-                            <option value="Premium">Premium</option>
-                            <option value="VIP">VIP</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="editarFechaVencimiento">Fecha de Vencimiento</label>
-                        <input type="date" class="form-control" id="editarFechaVencimiento" name="fecha_vencimiento" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editarDeuda">Deuda (AR$)</label>
-                        <input type="number" class="form-control" id="editarDeuda" name="deuda" step="0.01" required>
-                    </div>
-                    <input type="hidden" id="editarIdUsuario" name="id_usuario">
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="guardarCambios">Guardar Cambios</button>
             </div>
         </div>
     </div>
@@ -236,6 +193,7 @@ if (!isset($_SESSION['admin_id'])) {
                     usuarios.forEach(function(usuario) {
                         usuariosContainer += '<div class="user-card">';
                         usuariosContainer += '<div class="user-info">';
+                        usuariosContainer += '<img src="' + (usuario.foto ? usuario.foto : 'default-avatar.png') + '" alt="Foto de Perfil" class="user-photo">';
                         usuariosContainer += '<div class="user-details">';
                         usuariosContainer += '<h5>' + usuario.nombre + ' ' + usuario.apellido + '</h5>';
                         usuariosContainer += '<p><strong>Teléfono:</strong> ' + usuario.telefono + '</p>';
@@ -269,10 +227,9 @@ if (!isset($_SESSION['admin_id'])) {
             method: 'GET',
             dataType: 'json',
             success: function(response) {
-                console.log(response); // Añade esto para ver la respuesta completa en la consola del navegador
                 if (response.status === 'success') {
-                    let deudaTotal = parseFloat(response.deuda_total); // Asegúrate de convertir el valor a tipo float
-                    $('#deudaTotal').text(deudaTotal.toFixed(2)); // Actualiza el HTML con la deuda total
+                    let deudaTotal = parseFloat(response.deuda_total);
+                    $('#deudaTotal').text(deudaTotal.toFixed(2));
                 } else {
                     Swal.fire('Error', response.message, 'error');
                 }
@@ -282,88 +239,6 @@ if (!isset($_SESSION['admin_id'])) {
             }
         });
     }
-
-    // Abrir el modal de edición de usuario
-    function abrirModalEdicion(id_usuario) {
-        $.ajax({
-            url: 'api_usuarios.php?action=usuario&id=' + id_usuario,
-            method: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                if (response.status === 'success') {
-                    let usuario = response.usuario;
-                    $('#editarIdUsuario').val(usuario.id_usuario);
-                    $('#editarNombre').val(usuario.nombre);
-                    $('#editarApellido').val(usuario.apellido);
-                    $('#editarTelefono').val(usuario.telefono);
-                    $('#editarEmail').val(usuario.email);
-                    $('#editarPlan').val(usuario.plan);
-                    $('#editarFechaVencimiento').val(usuario.fecha_vencimiento);
-                    $('#editarDeuda').val(usuario.deuda);
-                    $('#editarUsuarioModal').modal('show');
-                } else {
-                    Swal.fire('Error', response.message, 'error');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Error en la solicitud AJAX:', status, error);
-            }
-        });
-    }
-
-    // Guardar los cambios realizados en el usuario
-    $('#guardarCambios').click(function() {
-        let formData = $('#editarUsuarioForm').serialize();
-
-        $.ajax({
-            url: 'api_usuarios.php?action=actualizar',
-            method: 'POST',
-            data: formData,
-            dataType: 'json',
-            success: function(response) {
-                if (response.status === 'success') {
-                    $('#editarUsuarioModal').modal('hide');
-                    Swal.fire('Éxito', 'Usuario actualizado correctamente', 'success').then(() => {
-                        cargarUsuarios(); // Recargar los usuarios después de actualizar
-                        cargarDeudaTotal(); // Actualizar la deuda total después de actualizar un usuario
-                    });
-                } else {
-                    Swal.fire('Error', response.message, 'error');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Error en la solicitud AJAX:', status, error);
-                Swal.fire('Error', 'Hubo un problema al actualizar el usuario', 'error');
-            }
-        });
-    });
-
-    // Guardar el nuevo usuario
-    $('#guardarNuevoUsuario').click(function() {
-        let formData = $('#añadirUsuarioForm').serialize();
-
-        $.ajax({
-            url: 'api_usuarios.php?action=añadir',
-            method: 'POST',
-            data: formData,
-            dataType: 'json',
-            success: function(response) {
-                if (response.status === 'success') {
-                    $('#añadirUsuarioModal').modal('hide');
-                    Swal.fire('Éxito', 'Usuario añadido correctamente', 'success').then(() => {
-                        cargarUsuarios(); // Recargar los usuarios después de añadir
-                        cargarDeudaTotal(); // Actualizar la deuda total después de añadir un usuario
-                    });
-                } else {
-                    Swal.fire('Error', response.message, 'error');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Error en la solicitud AJAX:', status, error);
-                Swal.fire('Error', 'Hubo un problema al añadir el usuario', 'error');
-            }
-        });
-    });
 </script>
 </body>
 </html>
