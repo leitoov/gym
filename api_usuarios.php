@@ -194,49 +194,86 @@ switch ($action) {
             error_log("ID no proporcionado o método HTTP incorrecto para la acción 'usuario'");
         }
         break;
-
-    case 'actualizar':
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            error_log("Ejecutando acción 'actualizar'");
-            $data = json_decode(file_get_contents("php://input"), true);
-            $required_fields = ['id_usuario', 'nombre', 'apellido', 'telefono', 'email', 'plan', 'fecha_vencimiento', 'deuda'];
-
-            foreach ($required_fields as $field) {
-                if (!isset($data[$field]) || empty(trim($data[$field]))) {
-                    $response['message'] = "Falta el campo requerido: $field";
-                    echo json_encode($response);
-                    die();
+    case 'añadir':
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $nombre = $_POST['nombre'];
+                $apellido = $_POST['apellido'];
+                $telefono = $_POST['telefono'];
+                $email = $_POST['email'];
+                $plan = $_POST['plan'];
+                $fecha_vencimiento = $_POST['fecha_vencimiento'];
+                $deuda = $_POST['deuda'];
+        
+                // Manejar la foto de perfil
+                $foto = null;
+                if (isset($_FILES['foto']) && $_FILES['foto']['error'] == 0) {
+                    $target_dir = "uploads/";
+                    if (!file_exists($target_dir)) {
+                        mkdir($target_dir, 0777, true);
+                    }
+                    $foto = $target_dir . basename($_FILES["foto"]["name"]);
+                    move_uploaded_file($_FILES["foto"]["tmp_name"], $foto);
                 }
+        
+                $sql = "INSERT INTO usuarios (nombre, apellido, telefono, email, plan, fecha_vencimiento, deuda, foto) 
+                        VALUES ('$nombre', '$apellido', '$telefono', '$email', '$plan', '$fecha_vencimiento', $deuda, '$foto')";
+        
+                if ($conn->query($sql) === TRUE) {
+                    $response = [
+                        'status' => 'success',
+                        'message' => 'Usuario añadido correctamente'
+                    ];
+                } else {
+                    error_log("Error al añadir usuario: " . $conn->error);
+                    $response['message'] = 'Error al añadir usuario: ' . $conn->error;
+                }
+        
+                echo json_encode($response);
+                die();
             }
-
-            // Actualizar usuario
-            $id_usuario = intval($data['id_usuario']);
-            $nombre = $conn->real_escape_string($data['nombre']);
-            $apellido = $conn->real_escape_string($data['apellido']);
-            $telefono = $conn->real_escape_string($data['telefono']);
-            $email = $conn->real_escape_string($data['email']);
-            $plan = $conn->real_escape_string($data['plan']);
-            $fecha_vencimiento = $conn->real_escape_string($data['fecha_vencimiento']);
-            $deuda = floatval($data['deuda']);
-
-            $sql_actualizar = "UPDATE usuarios SET nombre = '$nombre', apellido = '$apellido', telefono = '$telefono', email = '$email', plan = '$plan', fecha_vencimiento = '$fecha_vencimiento', deuda = $deuda WHERE id_usuario = $id_usuario";
-
-            if ($conn->query($sql_actualizar) === TRUE) {
-                $response = [
-                    'status' => 'success',
-                    'message' => 'Usuario actualizado correctamente'
-                ];
-            } else {
-                error_log("Error al actualizar usuario: " . $conn->error);
-                $response['message'] = 'Error al actualizar usuario: ' . $conn->error;
-            }
-
-            echo json_encode($response);
-            die();
-        } else {
-            error_log("Método HTTP incorrecto para la acción 'actualizar'");
-        }
         break;
+    case 'actualizar':
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $id_usuario = intval($_POST['id_usuario']);
+                $nombre = $_POST['nombre'];
+                $apellido = $_POST['apellido'];
+                $telefono = $_POST['telefono'];
+                $email = $_POST['email'];
+                $plan = $_POST['plan'];
+                $fecha_vencimiento = $_POST['fecha_vencimiento'];
+                $deuda = floatval($_POST['deuda']);
+        
+                // Manejar la foto de perfil (si se envía una nueva)
+                $foto = null;
+                if (isset($_FILES['foto']) && $_FILES['foto']['error'] == 0) {
+                    $target_dir = "uploads/";
+                    if (!file_exists($target_dir)) {
+                        mkdir($target_dir, 0777, true);
+                    }
+                    $foto = $target_dir . basename($_FILES["foto"]["name"]);
+                    move_uploaded_file($_FILES["foto"]["tmp_name"], $foto);
+        
+                    // Actualizar la consulta para incluir la foto
+                    $sql_actualizar = "UPDATE usuarios SET nombre = '$nombre', apellido = '$apellido', telefono = '$telefono', email = '$email', plan = '$plan', fecha_vencimiento = '$fecha_vencimiento', deuda = $deuda, foto = '$foto' WHERE id_usuario = $id_usuario";
+                } else {
+                    // Si no hay nueva foto, no actualizar el campo foto
+                    $sql_actualizar = "UPDATE usuarios SET nombre = '$nombre', apellido = '$apellido', telefono = '$telefono', email = '$email', plan = '$plan', fecha_vencimiento = '$fecha_vencimiento', deuda = $deuda WHERE id_usuario = $id_usuario";
+                }
+        
+                if ($conn->query($sql_actualizar) === TRUE) {
+                    $response = [
+                        'status' => 'success',
+                        'message' => 'Usuario actualizado correctamente'
+                    ];
+                } else {
+                    error_log("Error al actualizar usuario: " . $conn->error);
+                    $response['message'] = 'Error al actualizar usuario: ' . $conn->error;
+                }
+        
+                echo json_encode($response);
+                die();
+            }
+        break;        
 
     case 'marcar_deuda_pagada':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
