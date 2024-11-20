@@ -251,7 +251,7 @@ if (!isset($_SESSION['admin_id'])) {
                                         <p><strong>Plan:</strong> ${usuario.plan}</p>
                                         <p><strong>Fecha de Vencimiento:</strong> ${usuario.fecha_vencimiento}</p>
                                         <p><strong>Deuda:</strong> AR$ ${usuario.deuda}</p>
-                                        ${usuario.foto ? `<img src="uploads/${usuario.foto}" alt="Foto de ${usuario.nombre}" style="max-width: 100px;">` : ''}
+                                        ${usuario.foto ? `<img src="${usuario.foto}" alt="Foto de ${usuario.nombre}" style="max-width: 100px;">` : ''}
                                     </div>
                                     <div class="user-actions">
                                         <button onclick="abrirModalEdicion(${usuario.id_usuario})" class="btn btn-warning btn-custom"><i class="fas fa-edit"></i> Editar</button>
