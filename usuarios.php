@@ -89,7 +89,7 @@ if (!isset($_SESSION['admin_id'])) {
     <h2 class="text-center mb-4">Usuarios Registrados</h2>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <a href="index.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver al Panel</a>
-        <a href="#" class="btn btn-success" data-toggle="modal" data-target="#añadirUsuarioModal"><i class="fas fa-user-plus"></i> Añadir Usuario</a>
+        <a href="#" class="btn btn-success" data-toggle="modal" data-target="#anadirUsuarioModal"><i class="fas fa-user-plus"></i> Añadir Usuario</a>
     </div>
     
     <!-- Contenedor de la deuda total -->
@@ -102,59 +102,118 @@ if (!isset($_SESSION['admin_id'])) {
     </div>
 </div>
 
-<!-- Modal para añadir usuario -->
-<div class="modal fade" id="añadirUsuarioModal" tabindex="-1" role="dialog" aria-labelledby="añadirUsuarioLabel" aria-hidden="true">
+<!-- Modal para anadir usuario -->
+<div class="modal fade" id="anadirUsuarioModal" tabindex="-1" role="dialog" aria-labelledby="anadirUsuarioLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="añadirUsuarioLabel">Añadir Usuario</h5>
+                <h5 class="modal-title" id="anadirUsuarioLabel">Añadir Usuario</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <form id="añadirUsuarioForm" enctype="multipart/form-data">
+                <form id="anadirUsuarioForm" enctype="multipart/form-data">
                     <div class="form-group">
-                        <label for="añadirNombre">Nombre</label>
-                        <input type="text" class="form-control" id="añadirNombre" name="nombre" required>
+                        <label for="anadirNombre">Nombre</label>
+                        <input type="text" class="form-control" id="anadirNombre" name="nombre" required>
                     </div>
                     <div class="form-group">
-                        <label for="añadirApellido">Apellido</label>
-                        <input type="text" class="form-control" id="añadirApellido" name="apellido" required>
+                        <label for="anadirApellido">Apellido</label>
+                        <input type="text" class="form-control" id="anadirApellido" name="apellido" required>
                     </div>
                     <div class="form-group">
-                        <label for="añadirTelefono">Teléfono</label>
-                        <input type="text" class="form-control" id="añadirTelefono" name="telefono" required>
+                        <label for="anadirTelefono">Teléfono</label>
+                        <input type="text" class="form-control" id="anadirTelefono" name="telefono" required>
                     </div>
                     <div class="form-group">
-                        <label for="añadirEmail">Correo Electrónico</label>
-                        <input type="email" class="form-control" id="añadirEmail" name="email" required>
+                        <label for="anadirEmail">Correo Electrónico</label>
+                        <input type="email" class="form-control" id="anadirEmail" name="email" required>
                     </div>
                     <div class="form-group">
-                        <label for="añadirPlan">Plan</label>
-                        <select class="form-control" id="añadirPlan" name="plan" required>
+                        <label for="anadirPlan">Plan</label>
+                        <select class="form-control" id="anadirPlan" name="plan" required>
                             <option value="Básico">Básico</option>
                             <option value="Premium">Premium</option>
                             <option value="VIP">VIP</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="añadirFechaVencimiento">Fecha de Vencimiento</label>
-                        <input type="date" class="form-control" id="añadirFechaVencimiento" name="fecha_vencimiento" required>
+                        <label for="anadirFechaVencimiento">Fecha de Vencimiento</label>
+                        <input type="date" class="form-control" id="anadirFechaVencimiento" name="fecha_vencimiento" required>
                     </div>
                     <div class="form-group">
-                        <label for="añadirDeuda">Deuda (AR$)</label>
-                        <input type="number" class="form-control" id="añadirDeuda" name="deuda" step="0.01" required>
+                        <label for="anadirDeuda">Deuda (AR$)</label>
+                        <input type="number" class="form-control" id="anadirDeuda" name="deuda" step="0.01" required>
                     </div>
                     <div class="form-group">
-                        <label for="añadirFoto">Foto</label>
-                        <input type="file" class="form-control" id="añadirFoto" name="foto" accept="image/*">
+                        <label for="anadirFoto">Foto</label>
+                        <input type="file" class="form-control" id="anadirFoto" name="foto" accept="image/*">
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-primary" id="guardarNuevoUsuario">Guardar Usuario</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para editar usuario -->
+<div class="modal fade" id="editarUsuarioModal" tabindex="-1" role="dialog" aria-labelledby="editarUsuarioLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editarUsuarioLabel">Editar Usuario</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editarUsuarioForm" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="editarNombre">Nombre</label>
+                        <input type="text" class="form-control" id="editarNombre" name="nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editarApellido">Apellido</label>
+                        <input type="text" class="form-control" id="editarApellido" name="apellido" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editarTelefono">Teléfono</label>
+                        <input type="text" class="form-control" id="editarTelefono" name="telefono" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editarEmail">Correo Electrónico</label>
+                        <input type="email" class="form-control" id="editarEmail" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editarPlan">Plan</label>
+                        <select class="form-control" id="editarPlan" name="plan" required>
+                            <option value="Básico">Básico</option>
+                            <option value="Premium">Premium</option>
+                            <option value="VIP">VIP</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editarFechaVencimiento">Fecha de Vencimiento</label>
+                        <input type="date" class="form-control" id="editarFechaVencimiento" name="fecha_vencimiento" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editarDeuda">Deuda (AR$)</label>
+                        <input type="number" class="form-control" id="editarDeuda" name="deuda" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editarFoto">Foto</label>
+                        <input type="file" class="form-control" id="editarFoto" name="foto" accept="image/*">
+                    </div>
+                    <input type="hidden" id="editarIdUsuario" name="id_usuario">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="guardarCambios">Guardar Cambios</button>
             </div>
         </div>
     </div>
@@ -233,11 +292,40 @@ if (!isset($_SESSION['admin_id'])) {
         });
     }
 
+    // Abrir el modal de edición de usuario
+    function abrirModalEdicion(id_usuario) {
+        $.ajax({
+            url: 'api_usuarios.php?action=usuario&id=' + id_usuario,
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    let usuario = response.usuario;
+                    $('#editarIdUsuario').val(usuario.id_usuario);
+                    $('#editarNombre').val(usuario.nombre);
+                    $('#editarApellido').val(usuario.apellido);
+                    $('#editarTelefono').val(usuario.telefono);
+                    $('#editarEmail').val(usuario.email);
+                    $('#editarPlan').val(usuario.plan);
+                    $('#editarFechaVencimiento').val(usuario.fecha_vencimiento);
+                    $('#editarDeuda').val(usuario.deuda);
+                    $('#editarUsuarioModal').modal('show');
+                } else {
+                    Swal.fire('Error', response.message, 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error en la solicitud AJAX:', status, error);
+            }
+        });
+    }
+
+    // Guardar el nuevo usuario
     $('#guardarNuevoUsuario').click(function() {
-        let formData = new FormData($('#añadirUsuarioForm')[0]);
+        let formData = new FormData($('#anadirUsuarioForm')[0]);
 
         $.ajax({
-            url: 'api_usuarios.php?action=añadir',
+            url: 'api_usuarios.php?action=anadir',
             method: 'POST',
             data: formData,
             contentType: false,
@@ -245,7 +333,7 @@ if (!isset($_SESSION['admin_id'])) {
             dataType: 'json',
             success: function(response) {
                 if (response.status === 'success') {
-                    $('#añadirUsuarioModal').modal('hide');
+                    $('#anadirUsuarioModal').modal('hide');
                     Swal.fire('Éxito', 'Usuario añadido correctamente', 'success').then(() => {
                         cargarUsuarios();
                         cargarDeudaTotal();
@@ -257,6 +345,35 @@ if (!isset($_SESSION['admin_id'])) {
             error: function(xhr, status, error) {
                 console.error('Error en la solicitud AJAX:', status, error);
                 Swal.fire('Error', 'Hubo un problema al añadir el usuario', 'error');
+            }
+        });
+    });
+
+    // Guardar los cambios realizados en el usuario
+    $('#guardarCambios').click(function() {
+        let formData = new FormData($('#editarUsuarioForm')[0]);
+
+        $.ajax({
+            url: 'api_usuarios.php?action=actualizar',
+            method: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    $('#editarUsuarioModal').modal('hide');
+                    Swal.fire('Éxito', 'Usuario actualizado correctamente', 'success').then(() => {
+                        cargarUsuarios(); // Recargar los usuarios después de actualizar
+                        cargarDeudaTotal(); // Actualizar la deuda total después de actualizar un usuario
+                    });
+                } else {
+                    Swal.fire('Error', response.message, 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error en la solicitud AJAX:', status, error);
+                Swal.fire('Error', 'Hubo un problema al actualizar el usuario', 'error');
             }
         });
     });

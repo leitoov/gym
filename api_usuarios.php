@@ -194,7 +194,7 @@ switch ($action) {
             error_log("ID no proporcionado o método HTTP incorrecto para la acción 'usuario'");
         }
         break;
-    case 'añadir':
+    case 'anadir':
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $nombre = $_POST['nombre'];
                 $apellido = $_POST['apellido'];
