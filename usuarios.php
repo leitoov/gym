@@ -34,7 +34,7 @@ if (!isset($_SESSION['admin_id'])) {
         }
 
         .user-card {
-            border: 2px solid #f8d7da;
+            border: 2px solid #fc70c3;
             border-radius: 10px;
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
@@ -65,7 +65,7 @@ if (!isset($_SESSION['admin_id'])) {
             border-radius: 50%;
             overflow: hidden;
             margin-right: 20px;
-            border: 2px solid #ff85a2;
+            border: 2px solid #d83178;
         }
 
         .user-photo img {
@@ -81,7 +81,7 @@ if (!isset($_SESSION['admin_id'])) {
         .user-details h5 {
             margin-bottom: 10px;
             font-weight: bold;
-            color: #ff5e78;
+            color: #d83178;
         }
 
         .user-details p {
@@ -100,14 +100,14 @@ if (!isset($_SESSION['admin_id'])) {
         .btn-custom {
             width: 150px;
             border-radius: 25px;
-            background-color: #ff85a2;
+            background-color: #d83178;
             border: none;
             color: #fff;
             transition: background-color 0.3s ease;
         }
 
         .btn-custom:hover {
-            background-color: #ff5e78;
+            background-color: #fb449e;
         }
 
         @media (max-width: 768px) {
@@ -137,24 +137,38 @@ if (!isset($_SESSION['admin_id'])) {
             text-align: center;
             margin-bottom: 20px;
             padding: 15px;
-            border: 1px solid #f8d7da;
+            border: 1px solid #c6b5b6;
             border-radius: 15px;
-            background-color: #fff0f3;
+            background-color: #ffffff;
         }
 
         .total-deuda-container h4 {
             margin: 0;
-            color: #ff5e78;
+            color: #d83178;
         }
 
         .btn-primary, .btn-secondary {
             border-radius: 25px;
         }
+
+        .modal-header {
+            background-color: #d83178;
+            color: #ffffff;
+        }
+
+        .modal-footer .btn-primary {
+            background-color: #fb449e;
+            border: none;
+        }
+
+        .modal-footer .btn-primary:hover {
+            background-color: #fc70c3;
+        }
     </style>
 </head>
 <body>
 <div class="container mt-5">
-    <h2 class="text-center mb-4" style="color: #ff5e78;">Credenciales de Usuarios del Gimnasio</h2>
+    <h2 class="text-center mb-4" style="color: #d83178;">Credenciales de Usuarios del Gimnasio</h2>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <a href="index.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver al Panel</a>
         <a href="#" class="btn btn-success" data-toggle="modal" data-target="#anadirUsuarioModal"><i class="fas fa-user-plus"></i> Añadir Usuario</a>
@@ -212,7 +226,7 @@ if (!isset($_SESSION['admin_id'])) {
                     </div>
                     <div class="form-group">
                         <label for="anadirDeuda">Deuda (AR$)</label>
-                        <input type="number" class="form-control" id="anadirDeuda" name="deuda" step="0.01" required>
+                        <input type="number" class="form-control" id="anadirDeuda" name="deuda" value="0.00" step="0.01" required>
                     </div>
                     <div class="form-group">
                         <label for="anadirFoto">Foto</label>
@@ -270,7 +284,7 @@ if (!isset($_SESSION['admin_id'])) {
                     </div>
                     <div class="form-group">
                         <label for="editarDeuda">Deuda (AR$)</label>
-                        <input type="number" class="form-control" id="editarDeuda" name="deuda" step="0.01" required>
+                        <input type="number" class="form-control" id="editarDeuda" name="deuda" value="0.00" step="0.01" required>
                     </div>
                     <div class="form-group">
                         <label for="editarFoto">Foto</label>
