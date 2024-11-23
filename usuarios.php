@@ -20,7 +20,7 @@ if (!isset($_SESSION['admin_id'])) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.26/dist/sweetalert2.min.css">
     <style>
         body {
-            background-color: #f0f0f5;
+            background-color: #f8f9fa;
             font-family: 'Arial', sans-serif;
         }
 
@@ -34,8 +34,8 @@ if (!isset($_SESSION['admin_id'])) {
         }
 
         .user-card {
-            border: 2px solid #fc70c3;
-            border-radius: 10px;
+            border: 1px solid #d83178;
+            border-radius: 15px;
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
             padding: 20px;
@@ -65,7 +65,7 @@ if (!isset($_SESSION['admin_id'])) {
             border-radius: 50%;
             overflow: hidden;
             margin-right: 20px;
-            border: 2px solid #d83178;
+            border: 2px solid #fc70c3;
         }
 
         .user-photo img {
@@ -87,7 +87,7 @@ if (!isset($_SESSION['admin_id'])) {
         .user-details p {
             margin-bottom: 5px;
             font-size: 0.9rem;
-            color: #555;
+            color: #333;
         }
 
         .user-actions {
@@ -137,7 +137,7 @@ if (!isset($_SESSION['admin_id'])) {
             text-align: center;
             margin-bottom: 20px;
             padding: 15px;
-            border: 1px solid #c6b5b6;
+            border: 1px solid #d83178;
             border-radius: 15px;
             background-color: #ffffff;
         }
