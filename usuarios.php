@@ -20,7 +20,7 @@ if (!isset($_SESSION['admin_id'])) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.26/dist/sweetalert2.min.css">
     <style>
         body {
-            background-color: #f8f9fa;
+            background-color: #f0f0f5;
             font-family: 'Arial', sans-serif;
         }
 
@@ -35,7 +35,7 @@ if (!isset($_SESSION['admin_id'])) {
 
         .user-card {
             border: 1px solid #d83178;
-            border-radius: 15px;
+            border-radius: 10px;
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
             padding: 20px;
@@ -65,7 +65,7 @@ if (!isset($_SESSION['admin_id'])) {
             border-radius: 50%;
             overflow: hidden;
             margin-right: 20px;
-            border: 2px solid #fc70c3;
+            border: 2px solid #6c757d;
         }
 
         .user-photo img {
@@ -81,13 +81,13 @@ if (!isset($_SESSION['admin_id'])) {
         .user-details h5 {
             margin-bottom: 10px;
             font-weight: bold;
-            color: #d83178;
+            color: #343a40;
         }
 
         .user-details p {
             margin-bottom: 5px;
             font-size: 0.9rem;
-            color: #333;
+            color: #555;
         }
 
         .user-actions {
@@ -100,14 +100,14 @@ if (!isset($_SESSION['admin_id'])) {
         .btn-custom {
             width: 150px;
             border-radius: 25px;
-            background-color: #d83178;
+            background-color: #343a40;
             border: none;
             color: #fff;
             transition: background-color 0.3s ease;
         }
 
         .btn-custom:hover {
-            background-color: #fb449e;
+            background-color: #6c757d;
         }
 
         @media (max-width: 768px) {
@@ -137,9 +137,9 @@ if (!isset($_SESSION['admin_id'])) {
             text-align: center;
             margin-bottom: 20px;
             padding: 15px;
-            border: 1px solid #d83178;
+            border: 1px solid #6c757d;
             border-radius: 15px;
-            background-color: #ffffff;
+            background-color: #f8f9fa;
         }
 
         .total-deuda-container h4 {
@@ -149,26 +149,32 @@ if (!isset($_SESSION['admin_id'])) {
 
         .btn-primary, .btn-secondary {
             border-radius: 25px;
+            background-color: #6c757d;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #d83178;
         }
 
         .modal-header {
-            background-color: #d83178;
+            background-color: #343a40;
             color: #ffffff;
         }
 
         .modal-footer .btn-primary {
-            background-color: #fb449e;
+            background-color: #d83178;
             border: none;
         }
 
         .modal-footer .btn-primary:hover {
-            background-color: #fc70c3;
+            background-color: #fb449e;
         }
     </style>
 </head>
 <body>
 <div class="container mt-5">
-    <h2 class="text-center mb-4" style="color: #d83178;">Credenciales de Usuarios del Gimnasio</h2>
+    <h2 class="text-center mb-4" style="color: #343a40;">Credenciales de Usuarios del Gimnasio</h2>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <a href="index.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver al Panel</a>
         <a href="#" class="btn btn-success" data-toggle="modal" data-target="#anadirUsuarioModal"><i class="fas fa-user-plus"></i> Añadir Usuario</a>
