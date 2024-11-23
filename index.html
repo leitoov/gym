@@ -5,10 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Administrador</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .login-container {
+            background: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .login-logo img {
+            width: 100px;
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            width: 100%;
+            border-radius: 25px;
+            padding: 10px;
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <h2>Iniciar Sesión - Administrador</h2>
+    <div class="login-container">
+        <div class="login-logo">
+            <img src="./assets/logo.png" alt="Logo del Gimnasio">
+        </div>
+        <h2 class="mb-4">Iniciar Sesión - Administrador</h2>
         <form action="./config/procesar_login.php" method="POST">
             <div class="form-group">
                 <label for="nombre_usuario">Nombre de Usuario:</label>
@@ -18,7 +56,7 @@
                 <label for="contrasena">Contraseña:</label>
                 <input type="password" class="form-control" id="contrasena" name="contrasena" required>
             </div>
-            <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+            <button type="submit" class="btn btn-primary mt-4">Iniciar Sesión</button>
         </form>
     </div>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
