@@ -1,8 +1,7 @@
 <?php
 session_start();
-include 'conexion.php'; // Incluye la conexión a la base de datos
+include 'conexion.php';
 
-// Verificar si el administrador está autenticado
 if (!isset($_SESSION['admin_id'])) {
     header('Location: index.html');
     exit();
@@ -14,18 +13,27 @@ if (!isset($_SESSION['admin_id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Credenciales de Usuarios - Gimnasio</title>
+    <title>Strong Woman Factory - Usuarios</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.26/dist/sweetalert2.min.css">
     <style>
+        :root {
+            --primary-pink: #FF69B4;
+            --secondary-turquoise: #40E0D0;
+            --dark-bg: #000000;
+            --light-bg: #FFFFFF;
+            --skin-tone: #FFE4C4;
+            --brown: #8B4513;
+        }
+
         body {
-            background-color: #f0f0f5;
+            background-color: #f8f9fa;
             font-family: 'Arial', sans-serif;
         }
 
         .container {
-            background: #ffffff;
+            background: var(--light-bg);
             border-radius: 15px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             padding: 30px;
@@ -34,22 +42,34 @@ if (!isset($_SESSION['admin_id'])) {
         }
 
         .user-card {
-            border: 1px solid #d83178;
-            border-radius: 10px;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            border: 2px solid var(--primary-pink);
+            border-radius: 15px;
+            box-shadow: 0 6px 12px rgba(255, 105, 180, 0.1);
             margin-bottom: 20px;
             padding: 20px;
             transition: all 0.3s;
-            background-color: #ffffff;
+            background: linear-gradient(145deg, var(--light-bg), #f8f9fa);
             display: flex;
             align-items: center;
-            max-width: 600px;
+            max-width: 800px;
             margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .user-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary-pink), var(--secondary-turquoise));
         }
 
         .user-card:hover {
-            transform: scale(1.02);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(255, 105, 180, 0.2);
         }
 
         .user-info {
@@ -57,15 +77,21 @@ if (!isset($_SESSION['admin_id'])) {
             align-items: center;
             flex-direction: row;
             width: 100%;
+            gap: 20px;
         }
 
         .user-photo {
-            flex: 0 0 100px;
-            height: 100px;
+            flex: 0 0 120px;
+            height: 120px;
             border-radius: 50%;
             overflow: hidden;
-            margin-right: 20px;
-            border: 2px solid #6c757d;
+            border: 3px solid var(--primary-pink);
+            box-shadow: 0 4px 8px rgba(255, 105, 180, 0.3);
+            transition: all 0.3s;
+        }
+
+        .user-photo:hover {
+            transform: scale(1.05);
         }
 
         .user-photo img {
@@ -76,38 +102,142 @@ if (!isset($_SESSION['admin_id'])) {
 
         .user-details {
             flex: 1;
+            padding: 10px;
         }
 
         .user-details h5 {
-            margin-bottom: 10px;
+            color: var(--primary-pink);
+            font-size: 1.4rem;
             font-weight: bold;
-            color: #343a40;
+            margin-bottom: 15px;
+            text-transform: uppercase;
         }
 
         .user-details p {
-            margin-bottom: 5px;
-            font-size: 0.9rem;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
             color: #555;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-details p strong {
+            color: var(--dark-bg);
+            min-width: 140px;
+            display: inline-block;
         }
 
         .user-actions {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
             margin-left: 20px;
         }
 
         .btn-custom {
             width: 150px;
             border-radius: 25px;
-            background-color: #343a40;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-custom.btn-warning {
+            background: linear-gradient(45deg, var(--primary-pink), var(--secondary-turquoise));
             border: none;
-            color: #fff;
-            transition: background-color 0.3s ease;
+            color: white;
+        }
+
+        .btn-custom.btn-info {
+            background: var(--dark-bg);
+            border: none;
+            color: white;
         }
 
         .btn-custom:hover {
-            background-color: #6c757d;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .total-deuda-container {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 15px;
+            background: linear-gradient(45deg, var(--primary-pink), var(--secondary-turquoise));
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 105, 180, 0.2);
+        }
+
+        .total-deuda-container h4 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Estilos para los modales */
+        .modal-content {
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: linear-gradient(45deg, var(--primary-pink), var(--secondary-turquoise));
+            color: white;
+            border-bottom: none;
+            padding: 1.5rem;
+        }
+
+        .modal-title {
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .form-group label {
+            color: var(--dark-bg);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #eee;
+            padding: 0.75rem;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-pink);
+            box-shadow: 0 0 0 0.2rem rgba(255, 105, 180, 0.25);
+        }
+
+        .modal-footer {
+            border-top: none;
+            padding: 1.5rem;
+        }
+
+        .btn-success {
+            background: var(--primary-pink);
+            border: none;
+            border-radius: 25px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-success:hover {
+            background: var(--secondary-turquoise);
+            transform: translateY(-2px);
         }
 
         @media (max-width: 768px) {
@@ -117,58 +247,20 @@ if (!isset($_SESSION['admin_id'])) {
             }
 
             .user-photo {
-                margin-bottom: 15px;
+                margin: 0 auto 20px;
             }
 
             .user-actions {
-                margin-top: 15px;
+                margin-top: 20px;
                 flex-direction: row;
-                flex-wrap: wrap;
                 justify-content: center;
+                margin-left: 0;
             }
 
             .btn-custom {
-                width: 100%;
-                margin-bottom: 10px;
+                width: auto;
+                padding: 8px 20px;
             }
-        }
-
-        .total-deuda-container {
-            text-align: center;
-            margin-bottom: 20px;
-            padding: 15px;
-            border: 1px solid #6c757d;
-            border-radius: 15px;
-            background-color: #f8f9fa;
-        }
-
-        .total-deuda-container h4 {
-            margin: 0;
-            color: #d83178;
-        }
-
-        .btn-primary, .btn-secondary {
-            border-radius: 25px;
-            background-color: #6c757d;
-            border: none;
-        }
-
-        .btn-primary:hover {
-            background-color: #d83178;
-        }
-
-        .modal-header {
-            background-color: #343a40;
-            color: #ffffff;
-        }
-
-        .modal-footer .btn-primary {
-            background-color: #d83178;
-            border: none;
-        }
-
-        .modal-footer .btn-primary:hover {
-            background-color: #fb449e;
         }
     </style>
 </head>
