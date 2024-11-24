@@ -251,57 +251,63 @@ if (!isset($_SESSION['admin_id'])) {
 
 <!-- Modal para anadir usuario -->
 <div class="modal fade" id="anadirUsuarioModal" tabindex="-1" role="dialog" aria-labelledby="anadirUsuarioLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="anadirUsuarioLabel">Añadir Usuario</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
                 <form id="anadirUsuarioForm" enctype="multipart/form-data">
-                    <div class="form-group">
-                        <label for="anadirNombre">Nombre</label>
-                        <input type="text" class="form-control" id="anadirNombre" name="nombre" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="anadirApellido">Apellido</label>
-                        <input type="text" class="form-control" id="anadirApellido" name="apellido" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="anadirTelefono">Teléfono</label>
-                        <input type="text" class="form-control" id="anadirTelefono" name="telefono" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="anadirEmail">Correo Electrónico</label>
-                        <input type="email" class="form-control" id="anadirEmail" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="anadirPlan">Plan</label>
-                        <select class="form-control" id="anadirPlan" name="plan" required>
-                            <option value="Básico">Básico</option>
-                            <option value="Premium">Premium</option>
-                            <option value="VIP">VIP</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="anadirFechaVencimiento">Fecha de Vencimiento</label>
-                        <input type="date" class="form-control" id="anadirFechaVencimiento" name="fecha_vencimiento" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="anadirDeuda">Deuda (AR$)</label>
-                        <input type="number" class="form-control" id="anadirDeuda" name="deuda" value="0.00" step="0.01" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="anadirFoto">Foto</label>
-                        <input type="file" class="form-control" id="anadirFoto" name="foto" accept="image/*">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="anadirNombre">Nombre</label>
+                                <input type="text" class="form-control form-control-lg" id="anadirNombre" name="nombre" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="anadirApellido">Apellido</label>
+                                <input type="text" class="form-control form-control-lg" id="anadirApellido" name="apellido" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="anadirTelefono">Teléfono</label>
+                                <input type="text" class="form-control form-control-lg" id="anadirTelefono" name="telefono" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="anadirEmail">Correo Electrónico</label>
+                                <input type="email" class="form-control form-control-lg" id="anadirEmail" name="email" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="anadirPlan">Plan</label>
+                                <select class="form-control form-control-lg" id="anadirPlan" name="plan" required>
+                                    <option value="Básico" selected>Básico</option>
+                                    <option value="Premium">Premium</option>
+                                    <option value="VIP">VIP</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="anadirFechaVencimiento">Fecha de Vencimiento</label>
+                                <input type="date" class="form-control form-control-lg" id="anadirFechaVencimiento" name="fecha_vencimiento" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="anadirDeuda">Deuda (AR$)</label>
+                                <input type="number" class="form-control form-control-lg" id="anadirDeuda" name="deuda" value="0.00" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="anadirFoto">Foto</label>
+                                <input type="file" class="form-control-file" id="anadirFoto" name="foto" accept="image/*">
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="guardarNuevoUsuario">Guardar Usuario</button>
+                <button type="button" class="btn btn-secondary btn-lg" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success btn-lg" id="guardarNuevoUsuario">Guardar Usuario</button>
             </div>
         </div>
     </div>
@@ -309,58 +315,64 @@ if (!isset($_SESSION['admin_id'])) {
 
 <!-- Modal para editar usuario -->
 <div class="modal fade" id="editarUsuarioModal" tabindex="-1" role="dialog" aria-labelledby="editarUsuarioLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-warning text-white">
                 <h5 class="modal-title" id="editarUsuarioLabel">Editar Usuario</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
                 <form id="editarUsuarioForm" enctype="multipart/form-data">
-                    <div class="form-group">
-                        <label for="editarNombre">Nombre</label>
-                        <input type="text" class="form-control" id="editarNombre" name="nombre" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editarApellido">Apellido</label>
-                        <input type="text" class="form-control" id="editarApellido" name="apellido" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editarTelefono">Teléfono</label>
-                        <input type="text" class="form-control" id="editarTelefono" name="telefono" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editarEmail">Correo Electrónico</label>
-                        <input type="email" class="form-control" id="editarEmail" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editarPlan">Plan</label>
-                        <select class="form-control" id="editarPlan" name="plan" required>
-                            <option value="Básico">Básico</option>
-                            <option value="Premium">Premium</option>
-                            <option value="VIP">VIP</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="editarFechaVencimiento">Fecha de Vencimiento</label>
-                        <input type="date" class="form-control" id="editarFechaVencimiento" name="fecha_vencimiento" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editarDeuda">Deuda (AR$)</label>
-                        <input type="number" class="form-control" id="editarDeuda" name="deuda" value="0.00" step="0.01" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editarFoto">Foto</label>
-                        <input type="file" class="form-control" id="editarFoto" name="foto" accept="image/*">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="editarNombre">Nombre</label>
+                                <input type="text" class="form-control form-control-lg" id="editarNombre" name="nombre" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editarApellido">Apellido</label>
+                                <input type="text" class="form-control form-control-lg" id="editarApellido" name="apellido" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editarTelefono">Teléfono</label>
+                                <input type="text" class="form-control form-control-lg" id="editarTelefono" name="telefono" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editarEmail">Correo Electrónico</label>
+                                <input type="email" class="form-control form-control-lg" id="editarEmail" name="email" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="editarPlan">Plan</label>
+                                <select class="form-control form-control-lg" id="editarPlan" name="plan" required>
+                                    <option value="Básico">Básico</option>
+                                    <option value="Premium">Premium</option>
+                                    <option value="VIP">VIP</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="editarFechaVencimiento">Fecha de Vencimiento</label>
+                                <input type="date" class="form-control form-control-lg" id="editarFechaVencimiento" name="fecha_vencimiento" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editarDeuda">Deuda (AR$)</label>
+                                <input type="number" class="form-control form-control-lg" id="editarDeuda" name="deuda" value="0.00" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editarFoto">Foto</label>
+                                <input type="file" class="form-control-file" id="editarFoto" name="foto" accept="image/*">
+                            </div>
+                        </div>
                     </div>
                     <input type="hidden" id="editarIdUsuario" name="id_usuario">
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="guardarCambios">Guardar Cambios</button>
+                <button type="button" class="btn btn-secondary btn-lg" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary btn-lg" id="guardarCambios">Guardar Cambios</button>
             </div>
         </div>
     </div>
