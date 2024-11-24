@@ -19,16 +19,15 @@ if (!isset($_SESSION['admin_id'])) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.26/dist/sweetalert2.min.css">
     <style>
         :root {
-            --primary-pink: #FF69B4;
+            --primary-pink: #d83178;
             --secondary-turquoise: #40E0D0;
-            --dark-bg: #000000;
-            --light-bg: #FFFFFF;
-            --skin-tone: #FFE4C4;
-            --brown: #8B4513;
+            --dark-bg: #1c1c1e;
+            --light-bg: #f7f7f7;
+            --gray: #6c757d;
         }
 
         body {
-            background-color: #f8f9fa;
+            background-color: var(--light-bg);
             font-family: 'Arial', sans-serif;
         }
 
@@ -37,39 +36,27 @@ if (!isset($_SESSION['admin_id'])) {
             border-radius: 15px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             padding: 30px;
-            max-width: 1200px;
+            max-width: 1000px;
             margin: auto;
         }
 
         .user-card {
-            border: 2px solid var(--primary-pink);
+            border: 1px solid var(--gray);
             border-radius: 15px;
-            box-shadow: 0 6px 12px rgba(255, 105, 180, 0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
             margin-bottom: 20px;
             padding: 20px;
             transition: all 0.3s;
-            background: linear-gradient(145deg, var(--light-bg), #f8f9fa);
+            background: var(--light-bg);
             display: flex;
             align-items: center;
-            max-width: 800px;
+            max-width: 700px;
             margin: 20px auto;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .user-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            background: linear-gradient(90deg, var(--primary-pink), var(--secondary-turquoise));
         }
 
         .user-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(255, 105, 180, 0.2);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
         }
 
         .user-info {
@@ -81,17 +68,11 @@ if (!isset($_SESSION['admin_id'])) {
         }
 
         .user-photo {
-            flex: 0 0 120px;
-            height: 120px;
+            flex: 0 0 100px;
+            height: 100px;
             border-radius: 50%;
             overflow: hidden;
-            border: 3px solid var(--primary-pink);
-            box-shadow: 0 4px 8px rgba(255, 105, 180, 0.3);
-            transition: all 0.3s;
-        }
-
-        .user-photo:hover {
-            transform: scale(1.05);
+            border: 2px solid var(--primary-pink);
         }
 
         .user-photo img {
@@ -102,36 +83,25 @@ if (!isset($_SESSION['admin_id'])) {
 
         .user-details {
             flex: 1;
-            padding: 10px;
         }
 
         .user-details h5 {
-            color: var(--primary-pink);
-            font-size: 1.4rem;
+            color: var(--dark-bg);
+            font-size: 1.2rem;
             font-weight: bold;
-            margin-bottom: 15px;
-            text-transform: uppercase;
+            margin-bottom: 10px;
         }
 
         .user-details p {
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             font-size: 0.95rem;
-            color: #555;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .user-details p strong {
-            color: var(--dark-bg);
-            min-width: 140px;
-            display: inline-block;
+            color: var(--gray);
         }
 
         .user-actions {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
             margin-left: 20px;
         }
 
@@ -142,41 +112,39 @@ if (!isset($_SESSION['admin_id'])) {
             font-weight: 600;
             text-transform: uppercase;
             font-size: 0.85rem;
-            letter-spacing: 0.5px;
         }
 
         .btn-custom.btn-warning {
-            background: linear-gradient(45deg, var(--primary-pink), var(--secondary-turquoise));
+            background: var(--primary-pink);
             border: none;
             color: white;
         }
 
         .btn-custom.btn-info {
-            background: var(--dark-bg);
+            background: var(--gray);
             border: none;
             color: white;
         }
 
         .btn-custom:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .total-deuda-container {
             text-align: center;
             margin-bottom: 30px;
-            padding: 20px;
+            padding: 15px;
             border-radius: 15px;
-            background: linear-gradient(45deg, var(--primary-pink), var(--secondary-turquoise));
+            background: var(--dark-bg);
             color: white;
-            box-shadow: 0 4px 15px rgba(255, 105, 180, 0.2);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
         .total-deuda-container h4 {
             margin: 0;
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             font-weight: 700;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
         }
 
         /* Estilos para los modales */
@@ -186,7 +154,7 @@ if (!isset($_SESSION['admin_id'])) {
         }
 
         .modal-header {
-            background: linear-gradient(45deg, var(--primary-pink), var(--secondary-turquoise));
+            background: var(--primary-pink);
             color: white;
             border-bottom: none;
             padding: 1.5rem;
@@ -195,11 +163,10 @@ if (!isset($_SESSION['admin_id'])) {
         .modal-title {
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
         }
 
         .modal-body {
-            padding: 2rem;
+            padding: 1.5rem;
         }
 
         .form-group label {
@@ -210,14 +177,14 @@ if (!isset($_SESSION['admin_id'])) {
 
         .form-control {
             border-radius: 10px;
-            border: 2px solid #eee;
+            border: 1px solid #ddd;
             padding: 0.75rem;
             transition: all 0.3s;
         }
 
         .form-control:focus {
             border-color: var(--primary-pink);
-            box-shadow: 0 0 0 0.2rem rgba(255, 105, 180, 0.25);
+            box-shadow: 0 0 0 0.2rem rgba(216, 49, 120, 0.25);
         }
 
         .modal-footer {
@@ -251,7 +218,7 @@ if (!isset($_SESSION['admin_id'])) {
             }
 
             .user-actions {
-                margin-top: 20px;
+                margin-top: 15px;
                 flex-direction: row;
                 justify-content: center;
                 margin-left: 0;
@@ -266,7 +233,7 @@ if (!isset($_SESSION['admin_id'])) {
 </head>
 <body>
 <div class="container mt-5">
-    <h2 class="text-center mb-4" style="color: #343a40;">Credenciales de Usuarios del Gimnasio</h2>
+    <h2 class="text-center mb-4" style="color: var(--dark-bg);">Credenciales de Usuarios del Gimnasio</h2>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <a href="index.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver al Panel</a>
         <a href="#" class="btn btn-success" data-toggle="modal" data-target="#anadirUsuarioModal"><i class="fas fa-user-plus"></i> Añadir Usuario</a>
