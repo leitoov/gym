@@ -235,15 +235,29 @@ switch ($action) {
         }
         break;        
 
-        case 'anadir':
+    case 'anadir':
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                $nombre = $_POST['nombre'];
-                $apellido = $_POST['apellido'];
-                $telefono = $_POST['telefono'];
-                $email = $_POST['email'];
-                $plan = $_POST['plan'];
+                $nombre = $conn->real_escape_string($_POST['nombre']);
+                $apellido = $conn->real_escape_string($_POST['apellido']);
+                $telefono = $conn->real_escape_string($_POST['telefono']);
+                $email = $conn->real_escape_string($_POST['email']);
+                $plan = $conn->real_escape_string($_POST['plan']);
                 $dia_vencimiento = intval($_POST['dia_vencimiento']);
-                $deuda = $_POST['deuda'];
+                $deuda = floatval($_POST['deuda']);
+        
+                // Verificar si el email ya está registrado
+                $sql_verificar_email = "SELECT COUNT(*) as total FROM usuarios WHERE email = '$email'";
+                $resultado_verificar = ejecutarConsulta($sql_verificar_email, $conn);
+        
+                if (isset($resultado_verificar[0]) && intval($resultado_verificar[0]['total']) > 0) {
+                    // Si el correo ya existe, devolver mensaje de error y no continuar
+                    $response = [
+                        'status' => 'error',
+                        'message' => 'El correo electrónico ya está registrado. Por favor, usa otro.'
+                    ];
+                    echo json_encode($response);
+                    die();
+                }
         
                 // Manejar la foto de perfil
                 $foto = null;
@@ -256,16 +270,7 @@ switch ($action) {
                     move_uploaded_file($_FILES["foto"]["tmp_name"], $foto);
                 }
         
-                // Verificar si el email ya existe
-                $sql_verificar_email = "SELECT COUNT(*) as total FROM usuarios WHERE email = '$email'";
-                $resultado_verificar = ejecutarConsulta($sql_verificar_email, $conn);
-                if (isset($resultado_verificar[0]) && $resultado_verificar[0]['total'] > 0) {
-                    $response['message'] = 'El correo electrónico ya está registrado. Por favor, usa otro.';
-                    echo json_encode($response);
-                    die();
-                }
-        
-                // Si no existe el email, proceder a insertar el nuevo usuario
+                // Insertar el nuevo usuario
                 $sql = "INSERT INTO usuarios (nombre, apellido, telefono, email, plan, dia_vencimiento, deuda, foto) 
                         VALUES ('$nombre', '$apellido', '$telefono', '$email', '$plan', $dia_vencimiento, $deuda, '$foto')";
         
@@ -276,13 +281,15 @@ switch ($action) {
                     ];
                 } else {
                     error_log("Error al añadir usuario: " . $conn->error);
+                    $response['status'] = 'error';
                     $response['message'] = 'Error al añadir usuario: ' . $conn->error;
                 }
         
                 echo json_encode($response);
                 die();
             }
-    break;
+        break;
+        
         
         
     case 'actualizar':
