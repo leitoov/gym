@@ -147,34 +147,20 @@ if (!isset($_SESSION['admin_id'])) {
                     } else {
                         // Mostrar la lista de deudores
                         deudores.forEach(function(deudor) {
-                            if (deudor.deudas.length > 1) {
-                                deudoresContainer += '<div class="user-card" style="background-color: #f8f9fa;">';
-                                deudoresContainer += '<div class="user-info">';
-                                deudoresContainer += '<div class="user-details">';
-                                deudoresContainer += '<h5>' + deudor.nombre + ' ' + deudor.apellido + '</h5>';
-                                deudoresContainer += '<p><strong>Teléfono:</strong> ' + deudor.telefono + '</p>';
-                                deudoresContainer += '<p><strong>Correo Electrónico:</strong> ' + deudor.email + '</p>';
-                                deudoresContainer += '<p><strong>Plan:</strong> ' + deudor.plan + '</p>';
+                            deudoresContainer += '<div class="user-card">';
+                            deudoresContainer += '<div class="user-info">';
+                            deudoresContainer += '<div class="user-details">';
+                            deudoresContainer += '<h5>' + deudor.nombre + ' ' + deudor.apellido + '</h5>';
+                            deudoresContainer += '<p><strong>Teléfono:</strong> ' + deudor.telefono + '</p>';
+                            deudoresContainer += '<p><strong>Correo Electrónico:</strong> ' + deudor.email + '</p>';
+                            deudoresContainer += '<p><strong>Plan:</strong> ' + deudor.plan + '</p>';
 
-                                // Mostrar las deudas del usuario con fondo gris
-                                deudoresContainer += '<div class="debt-list" style="background-color: #f8f9fa;">';
-                            } else {
-                                deudoresContainer += '<div class="user-card">';
-                                deudoresContainer += '<div class="user-info">';
-                                deudoresContainer += '<div class="user-details">';
-                                deudoresContainer += '<h5>' + deudor.nombre + ' ' + deudor.apellido + '</h5>';
-                                deudoresContainer += '<p><strong>Teléfono:</strong> ' + deudor.telefono + '</p>';
-                                deudoresContainer += '<p><strong>Correo Electrónico:</strong> ' + deudor.email + '</p>';
-                                deudoresContainer += '<p><strong>Plan:</strong> ' + deudor.plan + '</p>';
-
-                                // Mostrar las deudas del usuario con fondo blanco
-                                deudoresContainer += '<div class="debt-list" style="background-color: #ffffff;">';
-                            }
-
+                            // Mostrar las deudas del usuario
+                            deudoresContainer += '<div class="debt-list">';
                             deudor.deudas.forEach(function(deuda) {
                                 deudoresContainer += '<div class="debt-item">';
                                 deudoresContainer += '<p><strong>Monto:</strong> AR$ ' + deuda.monto + '</p>';
-                                deudoresContainer += '<p><strong>Mes de la Deuda:</strong> ' + deuda.fecha_generacion + '</p>';
+                                deudoresContainer += '<p><strong>Fecha de Vencimiento:</strong> ' + deuda.fecha_vencimiento + '</p>';
                                 deudoresContainer += '<button onclick="marcarDeudaComoPagada(' + deuda.id_deuda + ')" class="btn btn-success btn-sm"><i class="fas fa-check"></i> Marcar como Pagada</button>';
                                 deudoresContainer += '</div>';
                             });
