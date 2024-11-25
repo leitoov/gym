@@ -72,7 +72,6 @@ if (!isset($_SESSION['admin_id'])) {
             height: 100px;
             border-radius: 50%;
             overflow: hidden;
-            border: 2px solid var(--primary-pink);
         }
 
         .user-photo img {
@@ -343,8 +342,8 @@ if (!isset($_SESSION['admin_id'])) {
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="anadirFechaVencimiento">Fecha de Vencimiento</label>
-                                <input type="date" class="form-control form-control-lg" id="anadirFechaVencimiento" name="fecha_vencimiento" required>
+                                <label for="anadirDiaVencimiento">Día de Vencimiento</label>
+                                <input type="number" class="form-control form-control-lg" id="anadirDiaVencimiento" name="dia_vencimiento" min="1" max="31" required>
                             </div>
                             <div class="form-group">
                                 <label for="anadirDeuda">Deuda (AR$)</label>
@@ -366,7 +365,7 @@ if (!isset($_SESSION['admin_id'])) {
     </div>
 </div>
 
-<!-- Modal para editar usuario -->
+<!-- Modal para Editar Usuario -->
 <div class="modal fade" id="editarUsuarioModal" tabindex="-1" role="dialog" aria-labelledby="editarUsuarioLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -398,17 +397,17 @@ if (!isset($_SESSION['admin_id'])) {
                             </div>
                         </div>
                         <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="editarPlan">Plan</label>
-                            <select class="form-control form-control-lg" id="editarPlan" name="plan" required>
-                                <option value="basico">Básico</option>
-                                <option value="premium">Premium</option>
-                                <option value="vip">VIP</option>
-                            </select>
-                        </div>
                             <div class="form-group">
-                                <label for="editarFechaVencimiento">Fecha de Vencimiento</label>
-                                <input type="date" class="form-control form-control-lg" id="editarFechaVencimiento" name="fecha_vencimiento" required>
+                                <label for="editarPlan">Plan</label>
+                                <select class="form-control form-control-lg" id="editarPlan" name="plan" required>
+                                    <option value="Básico">Básico</option>
+                                    <option value="Premium">Premium</option>
+                                    <option value="VIP">VIP</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="editarDiaVencimiento">Día de Vencimiento</label>
+                                <input type="number" class="form-control form-control-lg" id="editarDiaVencimiento" name="dia_vencimiento" min="1" max="31" required>
                             </div>
                             <div class="form-group">
                                 <label for="editarDeuda">Deuda (AR$)</label>
@@ -430,6 +429,7 @@ if (!isset($_SESSION['admin_id'])) {
         </div>
     </div>
 </div>
+
 
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@1.16.1/dist/umd/popper.min.js"></script>

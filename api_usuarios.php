@@ -170,38 +170,38 @@ switch ($action) {
             error_log("Método HTTP incorrecto para la acción 'deudores'");
         }
         break;
-    case 'usuario':
-        if ($id !== null && $_SERVER['REQUEST_METHOD'] === 'GET') {
-            error_log("Ejecutando acción 'usuario' con ID: $id");
-            // Obtener un usuario por su ID
-            $sql_usuario = "SELECT * FROM usuarios WHERE id_usuario = $id";
-            $usuario = ejecutarConsulta($sql_usuario, $conn);
-
-            if (isset($usuario['error'])) {
-                $response['message'] = 'Error al obtener usuario: ' . $usuario['error'];
-            } elseif (!empty($usuario)) {
-                $response = [
-                    'status' => 'success',
-                    'usuario' => $usuario[0]
-                ];
+        case 'usuario':
+            if ($id !== null && $_SERVER['REQUEST_METHOD'] === 'GET') {
+                error_log("Ejecutando acción 'usuario' con ID: $id");
+                // Obtener un usuario por su ID
+                $sql_usuario = "SELECT * FROM usuarios WHERE id_usuario = $id";
+                $usuario = ejecutarConsulta($sql_usuario, $conn);
+        
+                if (isset($usuario['error'])) {
+                    $response['message'] = 'Error al obtener usuario: ' . $usuario['error'];
+                } elseif (!empty($usuario)) {
+                    $response = [
+                        'status' => 'success',
+                        'usuario' => $usuario[0]
+                    ];
+                } else {
+                    $response['message'] = 'Usuario no encontrado';
+                }
+        
+                echo json_encode($response);
+                die();
             } else {
-                $response['message'] = 'Usuario no encontrado';
+                error_log("ID no proporcionado o método HTTP incorrecto para la acción 'usuario'");
             }
-
-            echo json_encode($response);
-            die();
-        } else {
-            error_log("ID no proporcionado o método HTTP incorrecto para la acción 'usuario'");
-        }
-        break;
-    case 'anadir':
+        break;        
+        case 'anadir':
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $nombre = $_POST['nombre'];
                 $apellido = $_POST['apellido'];
                 $telefono = $_POST['telefono'];
                 $email = $_POST['email'];
                 $plan = $_POST['plan'];
-                $fecha_vencimiento = $_POST['fecha_vencimiento'];
+                $dia_vencimiento = intval($_POST['dia_vencimiento']); // Cambiado para usar el día de vencimiento
                 $deuda = $_POST['deuda'];
         
                 // Manejar la foto de perfil
@@ -215,8 +215,8 @@ switch ($action) {
                     move_uploaded_file($_FILES["foto"]["tmp_name"], $foto);
                 }
         
-                $sql = "INSERT INTO usuarios (nombre, apellido, telefono, email, plan, fecha_vencimiento, deuda, foto) 
-                        VALUES ('$nombre', '$apellido', '$telefono', '$email', '$plan', '$fecha_vencimiento', $deuda, '$foto')";
+                $sql = "INSERT INTO usuarios (nombre, apellido, telefono, email, plan, dia_vencimiento, deuda, foto) 
+                        VALUES ('$nombre', '$apellido', '$telefono', '$email', '$plan', $dia_vencimiento, $deuda, '$foto')";
         
                 if ($conn->query($sql) === TRUE) {
                     $response = [
@@ -232,7 +232,8 @@ switch ($action) {
                 die();
             }
         break;
-    case 'actualizar':
+        
+        case 'actualizar':
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $id_usuario = intval($_POST['id_usuario']);
                 $nombre = $_POST['nombre'];
@@ -240,7 +241,7 @@ switch ($action) {
                 $telefono = $_POST['telefono'];
                 $email = $_POST['email'];
                 $plan = $_POST['plan'];
-                $fecha_vencimiento = $_POST['fecha_vencimiento'];
+                $dia_vencimiento = intval($_POST['dia_vencimiento']); // Cambiado para usar el día de vencimiento
                 $deuda = floatval($_POST['deuda']);
         
                 // Manejar la foto de perfil (si se envía una nueva)
@@ -254,10 +255,10 @@ switch ($action) {
                     move_uploaded_file($_FILES["foto"]["tmp_name"], $foto);
         
                     // Actualizar la consulta para incluir la foto
-                    $sql_actualizar = "UPDATE usuarios SET nombre = '$nombre', apellido = '$apellido', telefono = '$telefono', email = '$email', plan = '$plan', fecha_vencimiento = '$fecha_vencimiento', deuda = $deuda, foto = '$foto' WHERE id_usuario = $id_usuario";
+                    $sql_actualizar = "UPDATE usuarios SET nombre = '$nombre', apellido = '$apellido', telefono = '$telefono', email = '$email', plan = '$plan', dia_vencimiento = $dia_vencimiento, deuda = $deuda, foto = '$foto' WHERE id_usuario = $id_usuario";
                 } else {
                     // Si no hay nueva foto, no actualizar el campo foto
-                    $sql_actualizar = "UPDATE usuarios SET nombre = '$nombre', apellido = '$apellido', telefono = '$telefono', email = '$email', plan = '$plan', fecha_vencimiento = '$fecha_vencimiento', deuda = $deuda WHERE id_usuario = $id_usuario";
+                    $sql_actualizar = "UPDATE usuarios SET nombre = '$nombre', apellido = '$apellido', telefono = '$telefono', email = '$email', plan = '$plan', dia_vencimiento = $dia_vencimiento, deuda = $deuda WHERE id_usuario = $id_usuario";
                 }
         
                 if ($conn->query($sql_actualizar) === TRUE) {
@@ -273,7 +274,8 @@ switch ($action) {
                 echo json_encode($response);
                 die();
             }
-        break;        
+        break;
+              
 
     case 'marcar_deuda_pagada':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
