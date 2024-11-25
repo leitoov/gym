@@ -235,44 +235,55 @@ switch ($action) {
         }
         break;        
 
-    case 'anadir':
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $nombre = $_POST['nombre'];
-            $apellido = $_POST['apellido'];
-            $telefono = $_POST['telefono'];
-            $email = $_POST['email'];
-            $plan = $_POST['plan'];
-            $dia_vencimiento = intval($_POST['dia_vencimiento']);
-            $deuda = $_POST['deuda'];
-
-            // Manejar la foto de perfil
-            $foto = null;
-            if (isset($_FILES['foto']) && $_FILES['foto']['error'] == 0) {
-                $target_dir = "uploads/";
-                if (!file_exists($target_dir)) {
-                    mkdir($target_dir, 0777, true);
+        case 'anadir':
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $nombre = $_POST['nombre'];
+                $apellido = $_POST['apellido'];
+                $telefono = $_POST['telefono'];
+                $email = $_POST['email'];
+                $plan = $_POST['plan'];
+                $dia_vencimiento = intval($_POST['dia_vencimiento']);
+                $deuda = $_POST['deuda'];
+        
+                // Manejar la foto de perfil
+                $foto = null;
+                if (isset($_FILES['foto']) && $_FILES['foto']['error'] == 0) {
+                    $target_dir = "uploads/";
+                    if (!file_exists($target_dir)) {
+                        mkdir($target_dir, 0777, true);
+                    }
+                    $foto = $target_dir . basename($_FILES["foto"]["name"]);
+                    move_uploaded_file($_FILES["foto"]["tmp_name"], $foto);
                 }
-                $foto = $target_dir . basename($_FILES["foto"]["name"]);
-                move_uploaded_file($_FILES["foto"]["tmp_name"], $foto);
+        
+                // Verificar si el email ya existe
+                $sql_verificar_email = "SELECT COUNT(*) as total FROM usuarios WHERE email = '$email'";
+                $resultado_verificar = ejecutarConsulta($sql_verificar_email, $conn);
+                if (isset($resultado_verificar[0]) && $resultado_verificar[0]['total'] > 0) {
+                    $response['message'] = 'El correo electrónico ya está registrado. Por favor, usa otro.';
+                    echo json_encode($response);
+                    die();
+                }
+        
+                // Si no existe el email, proceder a insertar el nuevo usuario
+                $sql = "INSERT INTO usuarios (nombre, apellido, telefono, email, plan, dia_vencimiento, deuda, foto) 
+                        VALUES ('$nombre', '$apellido', '$telefono', '$email', '$plan', $dia_vencimiento, $deuda, '$foto')";
+        
+                if ($conn->query($sql) === TRUE) {
+                    $response = [
+                        'status' => 'success',
+                        'message' => 'Usuario añadido correctamente'
+                    ];
+                } else {
+                    error_log("Error al añadir usuario: " . $conn->error);
+                    $response['message'] = 'Error al añadir usuario: ' . $conn->error;
+                }
+        
+                echo json_encode($response);
+                die();
             }
-
-            $sql = "INSERT INTO usuarios (nombre, apellido, telefono, email, plan, dia_vencimiento, deuda, foto) 
-                    VALUES ('$nombre', '$apellido', '$telefono', '$email', '$plan', $dia_vencimiento, $deuda, '$foto')";
-
-            if ($conn->query($sql) === TRUE) {
-                $response = [
-                    'status' => 'success',
-                    'message' => 'Usuario añadido correctamente'
-                ];
-            } else {
-                error_log("Error al añadir usuario: " . $conn->error);
-                $response['message'] = 'Error al añadir usuario: ' . $conn->error;
-            }
-
-            echo json_encode($response);
-            die();
-        }
-        break;
+    break;
+        
         
     case 'actualizar':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
