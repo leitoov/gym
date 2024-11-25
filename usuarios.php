@@ -523,6 +523,7 @@ if (!isset($_SESSION['admin_id'])) {
                     $('#editarPlan').val(usuario.plan);
                     $('#editarFechaVencimiento').val(usuario.fecha_vencimiento);
                     $('#editarDeuda').val(usuario.deuda);
+                    $('#editarPlan').find(`option[value="${usuario.plan}"]`).prop('selected', true);
                     $('#editarUsuarioModal').modal('show');
                 } else {
                     Swal.fire('Error', response.message, 'error');
