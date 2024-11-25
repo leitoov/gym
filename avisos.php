@@ -52,7 +52,7 @@ while ($deudor = $deudores->fetch_assoc()) {
     
     // Guardar en la tabla historial_avisos
     $fecha_actual = date('Y-m-d H:i:s');
-    $sql_historial = "INSERT INTO historial_avisos (id_usuario, fecha_aviso, mensaje) VALUES ($id_usuario, '$fecha_actual', '$mensaje')";
+    $sql_historial = "INSERT INTO historial_avisos (id_usuario, fecha, accion, monto) VALUES ($id_usuario, '$fecha_actual','whatsapp', '$monto')";
     if ($conn->query($sql_historial) === false) {
         error_log("Error al guardar el aviso en el historial para el usuario $id_usuario: " . $conn->error);
         echo "<p>Error al guardar el aviso en el historial. Ver el archivo de registro de errores para más detalles.</p>";
