@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'conexion.php'; // Incluye la conexión a la base de datos
+include 'config/conexion.php'; // Incluye la conexión a la base de datos
 
 // Configurar el manejo de errores para depuración
 ini_set('display_errors', 1);
