@@ -284,7 +284,7 @@
                     A
                 </div>
                 <span>Admin: <?= $_SESSION['nombre_usuario'] ?></span>
-                <button class="logout-btn">
+                <button class="logout-btn" onclick="window.location.href='logout.php'">
                     <span class="material-icons">logout</span>
                     Cerrar Sesión
                 </button>
