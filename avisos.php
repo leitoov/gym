@@ -2,10 +2,23 @@
 session_start();
 include 'conexion.php'; // Incluye la conexión a la base de datos
 
+// Configurar el manejo de errores para depuración
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/error_log.txt'); // Crear archivo error_log.txt para guardar errores
+
 // Verificar si el administrador está autenticado
 if (!isset($_SESSION['admin_id'])) {
     header('Location: index.html');
     exit();
+}
+
+// Verificar conexión con la base de datos
+if ($conn->connect_error) {
+    error_log("Error de conexión a la base de datos: " . $conn->connect_error);
+    die("Error de conexión a la base de datos");
 }
 
 // Obtener la lista de usuarios con deudas
@@ -16,7 +29,8 @@ $sql_deudores = "SELECT u.id_usuario, u.nombre, u.apellido, u.telefono, d.monto,
 $deudores = $conn->query($sql_deudores);
 
 if ($deudores === false) {
-    echo "<p>Error al ejecutar la consulta: " . $conn->error . "</p>";
+    error_log("Error al ejecutar la consulta SQL de deudores: " . $conn->error);
+    echo "<p>Error al ejecutar la consulta. Ver el archivo de registro de errores para más detalles.</p>";
     exit();
 }
 
@@ -27,9 +41,9 @@ echo "<div class='notificaciones-list'>";
 
 while ($deudor = $deudores->fetch_assoc()) {
     $id_usuario = $deudor['id_usuario'];
-    $nombre = $deudor['nombre'];
-    $apellido = $deudor['apellido'];
-    $telefono = $deudor['telefono'];
+    $nombre = htmlspecialchars($deudor['nombre']);
+    $apellido = htmlspecialchars($deudor['apellido']);
+    $telefono = htmlspecialchars($deudor['telefono']);
     $monto = number_format($deudor['monto'], 2);
     
     // Crear mensaje de WhatsApp
@@ -40,11 +54,12 @@ while ($deudor = $deudores->fetch_assoc()) {
     $fecha_actual = date('Y-m-d H:i:s');
     $sql_historial = "INSERT INTO historial_avisos (id_usuario, fecha_aviso, mensaje) VALUES ($id_usuario, '$fecha_actual', '$mensaje')";
     if ($conn->query($sql_historial) === false) {
-        echo "<p>Error al guardar el aviso en el historial: " . $conn->error . "</p>";
-        exit();
+        error_log("Error al guardar el aviso en el historial para el usuario $id_usuario: " . $conn->error);
+        echo "<p>Error al guardar el aviso en el historial. Ver el archivo de registro de errores para más detalles.</p>";
+        continue; // Continuar con los siguientes registros
     }
 
-    // Enviar notificación por WhatsApp (mostrar enlace)
+    // Mostrar enlace para enviar notificación por WhatsApp
     echo "<div class='notificacion card mb-3 p-3 shadow-sm'>";
     echo "<div class='d-flex justify-content-between align-items-center'>";
     echo "<div class='info'>";
@@ -66,7 +81,8 @@ $sql_avisos = "SELECT u.id_usuario, u.nombre, u.apellido, COUNT(h.id_aviso) AS t
 $avisos = $conn->query($sql_avisos);
 
 if ($avisos === false) {
-    echo "<p>Error al obtener el historial de avisos: " . $conn->error . "</p>";
+    error_log("Error al obtener el historial de avisos: " . $conn->error);
+    echo "<p>Error al obtener el historial de avisos. Ver el archivo de registro de errores para más detalles.</p>";
     exit();
 }
 
@@ -75,7 +91,7 @@ echo "<div class='resumen-avisos card mt-5 p-4 shadow-sm'>";
 echo "<h3 class='text-center'>Resumen de Avisos Enviados</h3>";
 echo "<ul class='list-group list-group-flush'>";
 while ($aviso = $avisos->fetch_assoc()) {
-    echo "<li class='list-group-item'>Usuario: " . $aviso['nombre'] . " " . $aviso['apellido'] . " - Avisos Enviados: " . $aviso['total_avisos'] . "</li>";
+    echo "<li class='list-group-item'>Usuario: " . htmlspecialchars($aviso['nombre']) . " " . htmlspecialchars($aviso['apellido']) . " - Avisos Enviados: " . $aviso['total_avisos'] . "</li>";
 }
 echo "</ul>";
 echo "</div>";
