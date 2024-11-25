@@ -123,58 +123,92 @@ switch ($action) {
         break;
 
     case 'deudores':
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            error_log("Ejecutando acción 'deudores'");
-            // Obtener usuarios con deudas pendientes en base al día de vencimiento
-            $dia_actual = date('j');
-            $sql_deudores = "SELECT u.id_usuario, u.nombre, u.apellido, 
-                             COALESCE(u.telefono, 'No disponible') AS telefono, 
-                             COALESCE(u.email, 'No disponible') AS email, 
-                             COALESCE(u.plan, 'No especificado') AS plan, 
-                             d.id_deuda, d.monto, d.fecha_generacion, d.estado 
-                             FROM usuarios u 
-                             LEFT JOIN deudas d ON u.id_usuario = d.id_usuario AND d.estado = 'pendiente'
-                             WHERE u.dia_vencimiento <= $dia_actual AND (d.id_deuda IS NULL OR d.estado = 'pendiente')
-                             ORDER BY u.id_usuario, d.fecha_generacion";
-            $deudores = ejecutarConsulta($sql_deudores, $conn);
+            if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+                error_log("Ejecutando acción 'deudores'");
+                
+                // Primero, generar las deudas que correspondan automáticamente
+                $dia_actual = date('j');
+                $mes_actual = date('n');
+                $ano_actual = date('Y');
         
-            if (isset($deudores['error'])) {
-                $response['message'] = 'Error al obtener deudores: ' . $deudores['error'];
-            } else {
-                $response = [
-                    'status' => 'success',
-                    'deudores' => []
-                ];
-                // Agrupar las deudas por usuario
-                foreach ($deudores as $deuda) {
-                    $id_usuario = $deuda['id_usuario'];
-                    if (!isset($response['deudores'][$id_usuario])) {
-                        $response['deudores'][$id_usuario] = [
-                            'id_usuario' => $deuda['id_usuario'],
-                            'nombre' => $deuda['nombre'],
-                            'apellido' => $deuda['apellido'],
-                            'telefono' => $deuda['telefono'],
-                            'email' => $deuda['email'],
-                            'plan' => $deuda['plan'],
-                            'deudas' => []
+                // Consulta para obtener todos los usuarios que necesitan generar una deuda
+                $sql_usuarios_para_generar_deuda = "SELECT id_usuario, dia_vencimiento 
+                                                    FROM usuarios 
+                                                    WHERE dia_vencimiento <= $dia_actual";
+                $usuarios_para_generar_deuda = ejecutarConsulta($sql_usuarios_para_generar_deuda, $conn);
+        
+                // Recorrer usuarios para crear las deudas si es necesario
+                foreach ($usuarios_para_generar_deuda as $usuario) {
+                    $id_usuario = $usuario['id_usuario'];
+                    $dia_vencimiento = $usuario['dia_vencimiento'];
+        
+                    // Verificar si ya existe una deuda para el mes actual
+                    $sql_verificar_deuda = "SELECT * FROM deudas 
+                                            WHERE id_usuario = $id_usuario AND MONTH(fecha_generacion) = $mes_actual AND YEAR(fecha_generacion) = $ano_actual";
+                    $deuda_existente = ejecutarConsulta($sql_verificar_deuda, $conn);
+        
+                    // Si no hay deuda para el mes actual, crear una nueva deuda
+                    if (empty($deuda_existente)) {
+                        $monto = 1000; // Puedes definir un monto fijo o calcularlo según el plan
+                        $sql_insertar_deuda = "INSERT INTO deudas (id_usuario, monto, fecha_generacion, estado) 
+                                               VALUES ($id_usuario, $monto, '$ano_actual-$mes_actual-$dia_vencimiento', 'pendiente')";
+                        if (!$conn->query($sql_insertar_deuda)) {
+                            error_log("Error al generar deuda para usuario $id_usuario: " . $conn->error);
+                        }
+                    }
+                }
+        
+                // Luego, obtener los usuarios con deudas pendientes
+                $sql_deudores = "SELECT u.id_usuario, u.nombre, u.apellido, 
+                                 COALESCE(u.telefono, 'No disponible') AS telefono, 
+                                 COALESCE(u.email, 'No disponible') AS email, 
+                                 p.nombre AS plan, 
+                                 d.id_deuda, d.monto, d.fecha_generacion, d.estado 
+                                 FROM usuarios u 
+                                 LEFT JOIN deudas d ON u.id_usuario = d.id_usuario AND d.estado = 'pendiente'
+                                 LEFT JOIN planes p ON u.plan = p.id_plan
+                                 WHERE d.estado = 'pendiente'
+                                 ORDER BY u.id_usuario, d.fecha_generacion";
+                $deudores = ejecutarConsulta($sql_deudores, $conn);
+        
+                if (isset($deudores['error'])) {
+                    $response['message'] = 'Error al obtener deudores: ' . $deudores['error'];
+                } else {
+                    $response = [
+                        'status' => 'success',
+                        'deudores' => []
+                    ];
+                    // Agrupar las deudas por usuario
+                    foreach ($deudores as $deuda) {
+                        $id_usuario = $deuda['id_usuario'];
+                        if (!isset($response['deudores'][$id_usuario])) {
+                            $response['deudores'][$id_usuario] = [
+                                'id_usuario' => $deuda['id_usuario'],
+                                'nombre' => $deuda['nombre'],
+                                'apellido' => $deuda['apellido'],
+                                'telefono' => $deuda['telefono'],
+                                'email' => $deuda['email'],
+                                'plan' => $deuda['plan'],
+                                'deudas' => []
+                            ];
+                        }
+                        $response['deudores'][$id_usuario]['deudas'][] = [
+                            'id_deuda' => $deuda['id_deuda'],
+                            'monto' => $deuda['monto'],
+                            'fecha_generacion' => $deuda['fecha_generacion'],
+                            'estado' => $deuda['estado']
                         ];
                     }
-                    $response['deudores'][$id_usuario]['deudas'][] = [
-                        'id_deuda' => $deuda['id_deuda'],
-                        'monto' => $deuda['monto'],
-                        'fecha_generacion' => $deuda['fecha_generacion'],
-                        'estado' => $deuda['estado']
-                    ];
+                    // Convertir el array asociativo en un array indexado
+                    $response['deudores'] = array_values($response['deudores']);
                 }
-                // Convertir el array asociativo en un array indexado
-                $response['deudores'] = array_values($response['deudores']);
+                echo json_encode($response);
+                die();
+            } else {
+                error_log("Método HTTP incorrecto para la acción 'deudores'");
             }
-            echo json_encode($response);
-            die();
-        } else {
-            error_log("Método HTTP incorrecto para la acción 'deudores'");
-        }
         break;
+        
 
     case 'usuario':
         if ($id !== null && $_SERVER['REQUEST_METHOD'] === 'GET') {
