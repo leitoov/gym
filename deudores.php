@@ -160,7 +160,7 @@ if (!isset($_SESSION['admin_id'])) {
                             deudor.deudas.forEach(function(deuda) {
                                 deudoresContainer += '<div class="debt-item">';
                                 deudoresContainer += '<p><strong>Monto:</strong> AR$ ' + deuda.monto + '</p>';
-                                deudoresContainer += '<p><strong>Fecha de Vencimiento:</strong> ' + deuda.fecha_vencimiento + '</p>';
+                                deudoresContainer += '<p><strong>Fecha de Vencimiento:</strong> ' + deuda.fecha_generacion + '</p>';
                                 deudoresContainer += '<button onclick="marcarDeudaComoPagada(' + deuda.id_deuda + ')" class="btn btn-success btn-sm"><i class="fas fa-check"></i> Marcar como Pagada</button>';
                                 deudoresContainer += '</div>';
                             });
