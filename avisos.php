@@ -72,7 +72,7 @@ while ($deudor = $deudores->fetch_assoc()) {
 echo "</div>"; // Cerrar notificaciones-list
 
 // Procesar el envío de la notificación si se presiona el botón
-tif (isset($_POST['enviar_notificacion'])) {
+if (isset($_POST['enviar_notificacion'])) {
     $id_usuario = $_POST['id_usuario'];
     $nombre = $_POST['nombre'];
     $apellido = $_POST['apellido'];
