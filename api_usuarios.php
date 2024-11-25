@@ -122,7 +122,7 @@ switch ($action) {
         }
         break;
 
-    case 'deudores':
+        case 'deudores':
             if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 error_log("Ejecutando acción 'deudores'");
                 
@@ -139,7 +139,7 @@ switch ($action) {
                     FROM usuarios u
                     INNER JOIN planes p ON u.plan = p.nombre
                     LEFT JOIN deudas d ON u.id_usuario = d.id_usuario AND d.estado = 'pendiente'
-                    WHERE u.dia_vencimiento <= $dia_actual AND (d.estado = 'pendiente' OR d.id_deuda IS NULL)
+                    WHERE u.dia_vencimiento <= $dia_actual AND d.estado = 'pendiente'
                     ORDER BY u.id_usuario, d.fecha_generacion";
             
                 $deudores = ejecutarConsulta($sql_deudores, $conn);
@@ -153,10 +153,6 @@ switch ($action) {
                     ];
                     // Agrupar las deudas por usuario
                     foreach ($deudores as $deuda) {
-                        // Omitir deudas que no están pendientes
-                        if ($deuda['estado'] !== 'pendiente' && $deuda['id_deuda'] !== null) {
-                            continue;
-                        }
                         $id_usuario = $deuda['id_usuario'];
                         if (!isset($response['deudores'][$id_usuario])) {
                             $response['deudores'][$id_usuario] = [
@@ -187,7 +183,8 @@ switch ($action) {
             } else {
                 error_log("Método HTTP incorrecto para la acción 'deudores'");
             }
-        break;
+            break;
+        
         
         
 
