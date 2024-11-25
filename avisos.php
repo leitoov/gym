@@ -21,11 +21,12 @@ if ($conn->connect_error) {
     die("Error de conexión a la base de datos");
 }
 
-// Obtener la lista de usuarios con deudas
-$sql_deudores = "SELECT u.id_usuario, u.nombre, u.apellido, u.telefono, d.monto, d.fecha_generacion, d.estado 
+// Obtener la lista de usuarios con deudas y sumar el total de sus deudas
+$sql_deudores = "SELECT u.id_usuario, u.nombre, u.apellido, u.telefono, SUM(d.monto) AS total_deuda
                  FROM usuarios u
                  INNER JOIN deudas d ON u.id_usuario = d.id_usuario
-                 WHERE d.estado = 'pendiente'";
+                 WHERE d.estado = 'pendiente'
+                 GROUP BY u.id_usuario";
 $deudores = $conn->query($sql_deudores);
 
 if ($deudores === false) {
@@ -44,7 +45,7 @@ while ($deudor = $deudores->fetch_assoc()) {
     $nombre = htmlspecialchars($deudor['nombre']);
     $apellido = htmlspecialchars($deudor['apellido']);
     $telefono = htmlspecialchars($deudor['telefono']);
-    $monto = number_format($deudor['monto'], 2);
+    $monto = number_format($deudor['total_deuda'], 2);
     
     // Crear mensaje de WhatsApp
     $mensaje = "Hola, $nombre $apellido, ¿cómo estás? Este es un mensaje automático para avisarte que tenés una deuda pendiente por la cuota del gym con un total de AR$ $monto.";
@@ -70,6 +71,11 @@ while ($deudor = $deudores->fetch_assoc()) {
 }
 
 echo "</div>"; // Cerrar notificaciones-list
+
+// Botón para volver al panel
+echo "<div class='text-center mt-4'>";
+echo "<a href='index.php' class='btn btn-secondary'><i class='fas fa-arrow-left'></i> Volver al Panel</a>";
+echo "</div>";
 
 // Procesar el envío de la notificación si se presiona el botón
 if (isset($_POST['enviar_notificacion'])) {
@@ -153,6 +159,10 @@ echo "</div>"; // Cerrar container
 
     .list-group-item {
         background-color: transparent;
+    }
+
+    .btn-secondary {
+        margin-top: 20px;
     }
 </style>
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
