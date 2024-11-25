@@ -398,14 +398,14 @@ if (!isset($_SESSION['admin_id'])) {
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="editarPlan">Plan</label>
-                                <select class="form-control form-control-lg" id="editarPlan" name="plan" required>
-                                    <option value="Básico">Básico</option>
-                                    <option value="Premium">Premium</option>
-                                    <option value="VIP">VIP</option>
-                                </select>
-                            </div>
+                        <div class="form-group">
+                            <label for="editarPlan">Plan</label>
+                            <select class="form-control form-control-lg" id="editarPlan" name="plan" required>
+                                <option value="basico">Básico</option>
+                                <option value="premium">Premium</option>
+                                <option value="vip">VIP</option>
+                            </select>
+                        </div>
                             <div class="form-group">
                                 <label for="editarFechaVencimiento">Fecha de Vencimiento</label>
                                 <input type="date" class="form-control form-control-lg" id="editarFechaVencimiento" name="fecha_vencimiento" required>
@@ -515,6 +515,8 @@ if (!isset($_SESSION['admin_id'])) {
             success: function(response) {
                 if (response.status === 'success') {
                     let usuario = response.usuario;
+                    console.log('Plan from API:', usuario.plan); // Debug log
+                    
                     $('#editarIdUsuario').val(usuario.id_usuario);
                     $('#editarNombre').val(usuario.nombre);
                     $('#editarApellido').val(usuario.apellido);
@@ -522,7 +524,18 @@ if (!isset($_SESSION['admin_id'])) {
                     $('#editarEmail').val(usuario.email);
                     $('#editarFechaVencimiento').val(usuario.fecha_vencimiento);
                     $('#editarDeuda').val(usuario.deuda);
-                    $('#editarPlan').val(usuario.plan);
+                    
+                    // Convertir el valor del plan a minúsculas para la comparación
+                    const planValue = usuario.plan.toLowerCase();
+                    console.log('Plan value after toLowerCase:', planValue); // Debug log
+                    
+                    $('#editarPlan option').each(function() {
+                        console.log('Option value:', $(this).val()); // Debug log
+                        if ($(this).val().toLowerCase() === planValue) {
+                            $(this).prop('selected', true);
+                        }
+                    });
+                    
                     $('#editarUsuarioModal').modal('show');
                 } else {
                     Swal.fire('Error', response.message, 'error');
