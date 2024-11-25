@@ -208,13 +208,33 @@ if (!isset($_SESSION['admin_id'])) {
         }
 
         @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
             .user-info {
                 flex-direction: column;
                 text-align: center;
+                gap: 10px;
             }
 
             .user-photo {
                 margin: 0 auto 20px;
+                height: 80px;
+                width: 80px;
+                flex: 0 0 80px;
+            }
+
+            .user-details {
+                width: 100%;
+            }
+
+            .user-details h5 {
+                font-size: 1.1rem;
+            }
+
+            .user-details p {
+                font-size: 0.9rem;
             }
 
             .user-actions {
@@ -222,11 +242,44 @@ if (!isset($_SESSION['admin_id'])) {
                 flex-direction: row;
                 justify-content: center;
                 margin-left: 0;
+                gap: 5px;
             }
 
             .btn-custom {
                 width: auto;
-                padding: 8px 20px;
+                padding: 8px 15px;
+                font-size: 0.75rem;
+            }
+
+            .modal-dialog {
+                max-width: 95%;
+                margin: 20px auto;
+            }
+
+            .modal-header {
+                padding: 1rem;
+            }
+
+            .modal-body {
+                padding: 1rem;
+            }
+
+            .modal-footer {
+                padding: 1rem;
+            }
+
+            .form-group label {
+                font-size: 0.9rem;
+            }
+
+            .form-control {
+                font-size: 0.85rem;
+                padding: 0.6rem;
+            }
+
+            .btn-success, .btn-secondary {
+                font-size: 0.85rem;
+                padding: 0.4rem 1rem;
             }
         }
     </style>
