@@ -520,11 +520,9 @@ if (!isset($_SESSION['admin_id'])) {
                     $('#editarApellido').val(usuario.apellido);
                     $('#editarTelefono').val(usuario.telefono);
                     $('#editarEmail').val(usuario.email);
-                    $('#editarPlan').val(usuario.plan);
                     $('#editarFechaVencimiento').val(usuario.fecha_vencimiento);
                     $('#editarDeuda').val(usuario.deuda);
-                    $('#editarPlan').find('option').prop('selected', false);
-                    $('#editarPlan').find(`option[value="${usuario.plan}"]`).prop('selected', true);
+                    $('#editarPlan').val(usuario.plan);
                     $('#editarUsuarioModal').modal('show');
                 } else {
                     Swal.fire('Error', response.message, 'error');
