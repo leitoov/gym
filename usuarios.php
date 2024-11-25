@@ -449,6 +449,64 @@ if (!isset($_SESSION['admin_id'])) {
                 $('#editarUsuarioModal').on('hidden.bs.modal', function () {
                     $('#editarUsuarioForm')[0].reset();
                 });
+
+                // Guardar el nuevo usuario
+                $('#guardarNuevoUsuario').click(function() {
+                    let formData = new FormData($('#anadirUsuarioForm')[0]);
+
+                    $.ajax({
+                        url: 'api_usuarios.php?action=anadir',
+                        method: 'POST',
+                        data: formData,
+                        contentType: false,
+                        processData: false,
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                $('#anadirUsuarioModal').modal('hide');
+                                Swal.fire('Éxito', 'Usuario añadido correctamente', 'success').then(() => {
+                                    cargarUsuarios();
+                                    cargarDeudaTotal();
+                                });
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error en la solicitud AJAX:', status, error);
+                            Swal.fire('Error', 'Hubo un problema al añadir el usuario', 'error');
+                        }
+                    });
+                });
+
+                // Guardar los cambios realizados en el usuario
+                $('#guardarCambios').click(function() {
+                    let formData = new FormData($('#editarUsuarioForm')[0]);
+
+                    $.ajax({
+                        url: 'api_usuarios.php?action=actualizar',
+                        method: 'POST',
+                        data: formData,
+                        contentType: false,
+                        processData: false,
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                $('#editarUsuarioModal').modal('hide');
+                                Swal.fire('Éxito', 'Usuario actualizado correctamente', 'success').then(() => {
+                                    cargarUsuarios(); // Recargar los usuarios después de actualizar
+                                    cargarDeudaTotal(); // Actualizar la deuda total después de actualizar un usuario
+                                });
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error en la solicitud AJAX:', status, error);
+                            Swal.fire('Error', 'Hubo un problema al actualizar el usuario', 'error');
+                        }
+                    });
+                });
             });
 
             function cargarUsuarios() {
@@ -524,117 +582,6 @@ if (!isset($_SESSION['admin_id'])) {
                     success: function(response) {
                         if (response.status === 'success') {
                             let usuario = response.usuario;
-                            console.log('Plan from API:', usuario.plan); // Debug log
-                            
-                            $('#editarIdUsuario').val(usuario.id_usuario);
-                            $('#editarNombre').val(usuario.nombre);
-                            $('#editarApellido').val(usuario.apellido);
-                            $('#editarTelefono').val(usuario.telefono);
-                            $('#editarEmail').val(usuario.email);
-                            $('#editarDiaVencimiento').val(usuario.dia_vencimiento);
-                            $('#editarDeuda').val(usuario.deuda);
-                            
-                            // Convertir el valor del plan a minúsculas para la comparación
-                            const planValue = usuario.plan.toLowerCase();
-                            console.log('Plan value after toLowerCase:', planValue); // Debug log
-                            
-                            $('#editarPlan option').each(function() {
-                                console.log('Option value:', $(this).val()); // Debug log
-                                if ($(this).val().toLowerCase() === planValue) {
-                                    $(this).prop('selected', true);
-                                }
-                            });
-                            
-                            $('#editarUsuarioModal').modal('show');
-                        } else {
-                            Swal.fire('Error', response.message, 'error');
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error en la solicitud AJAX:', status, error);
-                    }
-                });
-            }
-
-            // Guardar el nuevo usuario
-            $('#guardarNuevoUsuario').click(function() {
-                let formData = new FormData($('#anadirUsuarioForm')[0]);
-
-                $.ajax({
-                    url: 'api_usuarios.php?action=anadir',
-                    method: 'POST',
-                    data: formData,
-                    contentType: false,
-                    processData: false,
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.status === 'success') {
-                            $('#anadirUsuarioModal').modal('hide');
-                            Swal.fire('Éxito', 'Usuario añadido correctamente', 'success').then(() => {
-                                cargarUsuarios();
-                                cargarDeudaTotal();
-                            });
-                        } else {
-                            Swal.fire('Error', response.message, 'error');
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error en la solicitud AJAX:', status, error);
-                        Swal.fire('Error', 'Hubo un problema al añadir el usuario', 'error');
-                    }
-                });
-            });
-
-            // Guardar los cambios realizados en el usuario
-            $('#guardarCambios').click(function() {
-                let formData = new FormData($('#editarUsuarioForm')[0]);
-
-                $.ajax({
-                    url: 'api_usuarios.php?action=actualizar',
-                    method: 'POST',
-                    data: formData,
-                    contentType: false,
-                    processData: false,
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.status === 'success') {
-                            $('#editarUsuarioModal').modal('hide');
-                            Swal.fire('Éxito', 'Usuario actualizado correctamente', 'success').then(() => {
-                                cargarUsuarios(); // Recargar los usuarios después de actualizar
-                                cargarDeudaTotal(); // Actualizar la deuda total después de actualizar un usuario
-                            });
-                        } else {
-                            Swal.fire('Error', response.message, 'error');
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error en la solicitud AJAX:', status, error);
-                        Swal.fire('Error', 'Hubo un problema al actualizar el usuario', 'error');
-                    }
-                });
-            });
-
-            // Limpiar el formulario al cerrar el modal de añadir usuario
-            $('#anadirUsuarioModal').on('hidden.bs.modal', function () {
-                $('#anadirUsuarioForm')[0].reset();
-            });
-
-            // Limpiar el formulario al cerrar el modal de editar usuario
-            $('#editarUsuarioModal').on('hidden.bs.modal', function () {
-                $('#editarUsuarioForm')[0].reset();
-            });
-
-            // Abrir el modal de edición de usuario
-            function abrirModalEdicion(id_usuario) {
-                $.ajax({
-                    url: 'api_usuarios.php?action=usuario&id=' + id_usuario,
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.status === 'success') {
-                            let usuario = response.usuario;
-                            console.log('Plan from API:', usuario.plan); // Debug log
-                            
                             $('#editarIdUsuario').val(usuario.id_usuario);
                             $('#editarNombre').val(usuario.nombre);
                             $('#editarApellido').val(usuario.apellido);
@@ -643,17 +590,13 @@ if (!isset($_SESSION['admin_id'])) {
                             $('#editarDiaVencimiento').val(usuario.dia_vencimiento); // Asignar el día de vencimiento
                             $('#editarDeuda').val(usuario.deuda);
                             
-                            // Convertir el valor del plan a minúsculas para la comparación
                             const planValue = usuario.plan.toLowerCase();
-                            console.log('Plan value after toLowerCase:', planValue); // Debug log
-                            
                             $('#editarPlan option').each(function() {
-                                console.log('Option value:', $(this).val()); // Debug log
                                 if ($(this).val().toLowerCase() === planValue) {
                                     $(this).prop('selected', true);
                                 }
                             });
-                            
+
                             $('#editarUsuarioModal').modal('show');
                         } else {
                             Swal.fire('Error', response.message, 'error');
@@ -664,35 +607,7 @@ if (!isset($_SESSION['admin_id'])) {
                     }
                 });
             }
-
-            // Guardar el nuevo usuario
-            $('#guardarNuevoUsuario').click(function() {
-                let formData = new FormData($('#anadirUsuarioForm')[0]);
-
-                $.ajax({
-                    url: 'api_usuarios.php?action=anadir',
-                    method: 'POST',
-                    data: formData,
-                    contentType: false,
-                    processData: false,
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.status === 'success') {
-                            $('#anadirUsuarioModal').modal('hide');
-                            Swal.fire('Éxito', 'Usuario añadido correctamente', 'success').then(() => {
-                                cargarUsuarios();
-                                cargarDeudaTotal();
-                            });
-                        } else {
-                            Swal.fire('Error', response.message, 'error');
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error en la solicitud AJAX:', status, error);
-                        Swal.fire('Error', 'Hubo un problema al añadir el usuario', 'error');
-                    }
-                });
-            });
         </script>
+
     </body>
 </html>
