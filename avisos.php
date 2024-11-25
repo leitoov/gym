@@ -34,7 +34,7 @@ if ($deudores === false) {
     exit();
 }
 
-// Guardar notificaciones en historial_avisos y enviar notificaciones por WhatsApp
+// Mostrar notificaciones en pantalla
 echo "<div class='container mt-5'>";
 echo "<h2 class='text-center mb-4'>Notificaciones de Deuda por WhatsApp</h2>";
 echo "<div class='notificaciones-list'>";
@@ -49,29 +49,49 @@ while ($deudor = $deudores->fetch_assoc()) {
     // Crear mensaje de WhatsApp
     $mensaje = "Hola, $nombre $apellido, ¿cómo estás? Este es un mensaje automático para avisarte que tenés una deuda pendiente por la cuota del gym con un total de AR$ $monto.";
     $whatsapp_url = "https://api.whatsapp.com/send/?phone=549$telefono&text=" . urlencode($mensaje) . "&type=phone_number&app_absent=0";
-    
+
+    // Mostrar enlace para enviar notificación por WhatsApp
+    echo "<div class='notificacion card mb-3 p-3 shadow-sm'>";
+    echo "<div class='d-flex justify-content-between align-items-center'>";
+    echo "<div class='info'>";
+    echo "<h5>Notificación para: $nombre $apellido</h5>";
+    echo "<p>Monto pendiente: AR$ $monto</p>";
+    echo "</div>";
+    echo "<form method='post' action=''>";
+    echo "<input type='hidden' name='id_usuario' value='$id_usuario'>";
+    echo "<input type='hidden' name='telefono' value='$telefono'>";
+    echo "<input type='hidden' name='nombre' value='$nombre'>";
+    echo "<input type='hidden' name='apellido' value='$apellido'>";
+    echo "<input type='hidden' name='monto' value='$monto'>";
+    echo "<button type='submit' name='enviar_notificacion' class='btn btn-success'><i class='fas fa-whatsapp'></i> Enviar Notificación por WhatsApp</button>";
+    echo "</form>";
+    echo "</div>";
+    echo "</div>";
+}
+
+echo "</div>"; // Cerrar notificaciones-list
+
+// Procesar el envío de la notificación si se presiona el botón
+tif (isset($_POST['enviar_notificacion'])) {
+    $id_usuario = $_POST['id_usuario'];
+    $nombre = $_POST['nombre'];
+    $apellido = $_POST['apellido'];
+    $telefono = $_POST['telefono'];
+    $monto = $_POST['monto'];
+
     // Guardar en la tabla historial_avisos
     $fecha_actual = date('Y-m-d H:i:s');
     $sql_historial = "INSERT INTO historial_avisos (id_usuario, fecha, accion, monto) VALUES ($id_usuario, '$fecha_actual','whatsapp', '$monto')";
     if ($conn->query($sql_historial) === false) {
         error_log("Error al guardar el aviso en el historial para el usuario $id_usuario: " . $conn->error);
         echo "<p>Error al guardar el aviso en el historial. Ver el archivo de registro de errores para más detalles.</p>";
-        continue; // Continuar con los siguientes registros
+    } else {
+        // Redirigir a la URL de WhatsApp
+        $mensaje = "Hola, $nombre $apellido, ¿cómo estás? Este es un mensaje automático para avisarte que tenés una deuda pendiente por la cuota del gym con un total de AR$ $monto.";
+        $whatsapp_url = "https://api.whatsapp.com/send/?phone=549$telefono&text=" . urlencode($mensaje) . "&type=phone_number&app_absent=0";
+        echo "<script>window.open('$whatsapp_url', '_blank');</script>";
     }
-
-    // Mostrar enlace para enviar notificación por WhatsApp
-    echo "<div class='notificacion card mb-3 p-3 shadow-sm'>";
-    echo "<div class='d-flex justify-content-between align-items-center'>";
-    echo "<div class='info'>";
-    echo "<h5>Notificación enviada a: $nombre $apellido</h5>";
-    echo "<p>Monto pendiente: AR$ $monto</p>";
-    echo "</div>";
-    echo "<a href='$whatsapp_url' target='_blank' class='btn btn-success'><i class='fas fa-whatsapp'></i> Enviar Notificación por WhatsApp</a>";
-    echo "</div>";
-    echo "</div>";
 }
-
-echo "</div>"; // Cerrar notificaciones-list
 
 // Mostrar cantidad de avisos enviados por usuario
 $sql_avisos = "SELECT u.id_usuario, u.nombre, u.apellido, COUNT(h.id_historial) AS total_avisos 
