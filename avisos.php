@@ -74,7 +74,7 @@ while ($deudor = $deudores->fetch_assoc()) {
 echo "</div>"; // Cerrar notificaciones-list
 
 // Mostrar cantidad de avisos enviados por usuario
-$sql_avisos = "SELECT u.id_usuario, u.nombre, u.apellido, COUNT(h.id_aviso) AS total_avisos 
+$sql_avisos = "SELECT u.id_usuario, u.nombre, u.apellido, COUNT(h.id_historial) AS total_avisos 
                FROM usuarios u
                LEFT JOIN historial_avisos h ON u.id_usuario = h.id_usuario
                GROUP BY u.id_usuario";
