@@ -66,8 +66,11 @@ switch ($action) {
                 error_log("Error al obtener el total de usuarios: " . json_encode($resultado_usuarios));
             }
 
-            // Obtener total de deudores
-            $sql_deudores = "SELECT COUNT(DISTINCT id_usuario) as total FROM deudas WHERE estado = 'pendiente'";
+            // Obtener total de deudores (usuarios con deudas pendientes en base al día de vencimiento)
+            $dia_actual = date('j');
+            $sql_deudores = "SELECT COUNT(DISTINCT u.id_usuario) as total FROM usuarios u 
+                             LEFT JOIN deudas d ON u.id_usuario = d.id_usuario AND d.estado = 'pendiente'
+                             WHERE u.dia_vencimiento <= $dia_actual AND (d.id_deuda IS NULL OR d.estado = 'pendiente')";
             $resultado_deudores = ejecutarConsulta($sql_deudores, $conn);
 
             if (isset($resultado_deudores[0])) {
@@ -86,12 +89,13 @@ switch ($action) {
     case 'usuarios':
             if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             error_log("Ejecutando acción 'usuarios'");
-                
-                // Obtener todos los usuarios y calcular la deuda acumulada
+            
+            // Obtener todos los usuarios y calcular la deuda acumulada considerando el día de vencimiento
+            $dia_actual = date('j');
             $sql_usuarios = "SELECT u.*, 
                             (SELECT SUM(d.monto) 
                             FROM deudas d 
-                            WHERE d.id_usuario = u.id_usuario AND d.estado = 'pendiente') AS deuda_total
+                            WHERE d.id_usuario = u.id_usuario AND d.estado = 'pendiente' AND u.dia_vencimiento <= $dia_actual) AS deuda_total
                             FROM usuarios u";
                              
             $usuarios = ejecutarConsulta($sql_usuarios, $conn);
@@ -117,19 +121,21 @@ switch ($action) {
             error_log("Método HTTP incorrecto para la acción 'usuarios'");
         }
         break;
+
     case 'deudores':
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             error_log("Ejecutando acción 'deudores'");
-            // Obtener usuarios con deudas pendientes
+            // Obtener usuarios con deudas pendientes en base al día de vencimiento
+            $dia_actual = date('j');
             $sql_deudores = "SELECT u.id_usuario, u.nombre, u.apellido, 
-                COALESCE(u.telefono, 'No disponible') AS telefono, 
-                COALESCE(u.email, 'No disponible') AS email, 
-                COALESCE(u.plan, 'No especificado') AS plan, 
-                d.id_deuda, d.monto, d.fecha_generacion, d.fecha_vencimiento, d.estado 
-                FROM usuarios u 
-                INNER JOIN deudas d ON u.id_usuario = d.id_usuario 
-                WHERE d.estado = 'pendiente' 
-                ORDER BY u.id_usuario, d.fecha_generacion";
+                             COALESCE(u.telefono, 'No disponible') AS telefono, 
+                             COALESCE(u.email, 'No disponible') AS email, 
+                             COALESCE(u.plan, 'No especificado') AS plan, 
+                             d.id_deuda, d.monto, d.fecha_generacion, d.estado 
+                             FROM usuarios u 
+                             LEFT JOIN deudas d ON u.id_usuario = d.id_usuario AND d.estado = 'pendiente'
+                             WHERE u.dia_vencimiento <= $dia_actual AND (d.id_deuda IS NULL OR d.estado = 'pendiente')
+                             ORDER BY u.id_usuario, d.fecha_generacion";
             $deudores = ejecutarConsulta($sql_deudores, $conn);
         
             if (isset($deudores['error'])) {
@@ -147,9 +153,9 @@ switch ($action) {
                             'id_usuario' => $deuda['id_usuario'],
                             'nombre' => $deuda['nombre'],
                             'apellido' => $deuda['apellido'],
-                            'telefono' => $deuda['telefono'],  // El valor nunca será NULL, siempre tendrá un valor predeterminado.
-                            'email' => $deuda['email'],        // Lo mismo aplica para email.
-                            'plan' => $deuda['plan'],          // Y también para el plan.
+                            'telefono' => $deuda['telefono'],
+                            'email' => $deuda['email'],
+                            'plan' => $deuda['plan'],
                             'deudas' => []
                         ];
                     }
@@ -157,7 +163,6 @@ switch ($action) {
                         'id_deuda' => $deuda['id_deuda'],
                         'monto' => $deuda['monto'],
                         'fecha_generacion' => $deuda['fecha_generacion'],
-                        'fecha_vencimiento' => $deuda['fecha_vencimiento'],
                         'estado' => $deuda['estado']
                     ];
                 }
@@ -170,118 +175,119 @@ switch ($action) {
             error_log("Método HTTP incorrecto para la acción 'deudores'");
         }
         break;
-        case 'usuario':
-            if ($id !== null && $_SERVER['REQUEST_METHOD'] === 'GET') {
-                error_log("Ejecutando acción 'usuario' con ID: $id");
-                // Obtener un usuario por su ID
-                $sql_usuario = "SELECT * FROM usuarios WHERE id_usuario = $id";
-                $usuario = ejecutarConsulta($sql_usuario, $conn);
-        
-                if (isset($usuario['error'])) {
-                    $response['message'] = 'Error al obtener usuario: ' . $usuario['error'];
-                } elseif (!empty($usuario)) {
-                    $response = [
-                        'status' => 'success',
-                        'usuario' => $usuario[0]
-                    ];
-                } else {
-                    $response['message'] = 'Usuario no encontrado';
-                }
-        
-                echo json_encode($response);
-                die();
+
+    case 'usuario':
+        if ($id !== null && $_SERVER['REQUEST_METHOD'] === 'GET') {
+            error_log("Ejecutando acción 'usuario' con ID: $id");
+            // Obtener un usuario por su ID
+            $sql_usuario = "SELECT * FROM usuarios WHERE id_usuario = $id";
+            $usuario = ejecutarConsulta($sql_usuario, $conn);
+
+            if (isset($usuario['error'])) {
+                $response['message'] = 'Error al obtener usuario: ' . $usuario['error'];
+            } elseif (!empty($usuario)) {
+                $response = [
+                    'status' => 'success',
+                    'usuario' => $usuario[0]
+                ];
             } else {
-                error_log("ID no proporcionado o método HTTP incorrecto para la acción 'usuario'");
+                $response['message'] = 'Usuario no encontrado';
             }
+
+            echo json_encode($response);
+            die();
+        } else {
+            error_log("ID no proporcionado o método HTTP incorrecto para la acción 'usuario'");
+        }
         break;        
-        case 'anadir':
-            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                $nombre = $_POST['nombre'];
-                $apellido = $_POST['apellido'];
-                $telefono = $_POST['telefono'];
-                $email = $_POST['email'];
-                $plan = $_POST['plan'];
-                $dia_vencimiento = intval($_POST['dia_vencimiento']); // Cambiado para usar el día de vencimiento
-                $deuda = $_POST['deuda'];
-        
-                // Manejar la foto de perfil
-                $foto = null;
-                if (isset($_FILES['foto']) && $_FILES['foto']['error'] == 0) {
-                    $target_dir = "uploads/";
-                    if (!file_exists($target_dir)) {
-                        mkdir($target_dir, 0777, true);
-                    }
-                    $foto = $target_dir . basename($_FILES["foto"]["name"]);
-                    move_uploaded_file($_FILES["foto"]["tmp_name"], $foto);
+
+    case 'anadir':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $nombre = $_POST['nombre'];
+            $apellido = $_POST['apellido'];
+            $telefono = $_POST['telefono'];
+            $email = $_POST['email'];
+            $plan = $_POST['plan'];
+            $dia_vencimiento = intval($_POST['dia_vencimiento']);
+            $deuda = $_POST['deuda'];
+
+            // Manejar la foto de perfil
+            $foto = null;
+            if (isset($_FILES['foto']) && $_FILES['foto']['error'] == 0) {
+                $target_dir = "uploads/";
+                if (!file_exists($target_dir)) {
+                    mkdir($target_dir, 0777, true);
                 }
-        
-                $sql = "INSERT INTO usuarios (nombre, apellido, telefono, email, plan, dia_vencimiento, deuda, foto) 
-                        VALUES ('$nombre', '$apellido', '$telefono', '$email', '$plan', $dia_vencimiento, $deuda, '$foto')";
-        
-                if ($conn->query($sql) === TRUE) {
-                    $response = [
-                        'status' => 'success',
-                        'message' => 'Usuario añadido correctamente'
-                    ];
-                } else {
-                    error_log("Error al añadir usuario: " . $conn->error);
-                    $response['message'] = 'Error al añadir usuario: ' . $conn->error;
-                }
-        
-                echo json_encode($response);
-                die();
+                $foto = $target_dir . basename($_FILES["foto"]["name"]);
+                move_uploaded_file($_FILES["foto"]["tmp_name"], $foto);
             }
+
+            $sql = "INSERT INTO usuarios (nombre, apellido, telefono, email, plan, dia_vencimiento, deuda, foto) 
+                    VALUES ('$nombre', '$apellido', '$telefono', '$email', '$plan', $dia_vencimiento, $deuda, '$foto')";
+
+            if ($conn->query($sql) === TRUE) {
+                $response = [
+                    'status' => 'success',
+                    'message' => 'Usuario añadido correctamente'
+                ];
+            } else {
+                error_log("Error al añadir usuario: " . $conn->error);
+                $response['message'] = 'Error al añadir usuario: ' . $conn->error;
+            }
+
+            echo json_encode($response);
+            die();
+        }
         break;
         
-        case 'actualizar':
-            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                $id_usuario = intval($_POST['id_usuario']);
-                $nombre = $_POST['nombre'];
-                $apellido = $_POST['apellido'];
-                $telefono = $_POST['telefono'];
-                $email = $_POST['email'];
-                $plan = $_POST['plan'];
-                $dia_vencimiento = intval($_POST['dia_vencimiento']); // Cambiado para usar el día de vencimiento
-                $deuda = floatval($_POST['deuda']);
-        
-                // Manejar la foto de perfil (si se envía una nueva)
-                $foto = null;
-                if (isset($_FILES['foto']) && $_FILES['foto']['error'] == 0) {
-                    $target_dir = "uploads/";
-                    if (!file_exists($target_dir)) {
-                        mkdir($target_dir, 0777, true);
-                    }
-                    $foto = $target_dir . basename($_FILES["foto"]["name"]);
-                    move_uploaded_file($_FILES["foto"]["tmp_name"], $foto);
-        
-                    // Actualizar la consulta para incluir la foto
-                    $sql_actualizar = "UPDATE usuarios SET nombre = '$nombre', apellido = '$apellido', telefono = '$telefono', email = '$email', plan = '$plan', dia_vencimiento = $dia_vencimiento, deuda = $deuda, foto = '$foto' WHERE id_usuario = $id_usuario";
-                } else {
-                    // Si no hay nueva foto, no actualizar el campo foto
-                    $sql_actualizar = "UPDATE usuarios SET nombre = '$nombre', apellido = '$apellido', telefono = '$telefono', email = '$email', plan = '$plan', dia_vencimiento = $dia_vencimiento, deuda = $deuda WHERE id_usuario = $id_usuario";
+    case 'actualizar':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id_usuario = intval($_POST['id_usuario']);
+            $nombre = $_POST['nombre'];
+            $apellido = $_POST['apellido'];
+            $telefono = $_POST['telefono'];
+            $email = $_POST['email'];
+            $plan = $_POST['plan'];
+            $dia_vencimiento = intval($_POST['dia_vencimiento']);
+            $deuda = floatval($_POST['deuda']);
+
+            // Manejar la foto de perfil (si se envía una nueva)
+            $foto = null;
+            if (isset($_FILES['foto']) && $_FILES['foto']['error'] == 0) {
+                $target_dir = "uploads/";
+                if (!file_exists($target_dir)) {
+                    mkdir($target_dir, 0777, true);
                 }
-        
-                if ($conn->query($sql_actualizar) === TRUE) {
-                    $response = [
-                        'status' => 'success',
-                        'message' => 'Usuario actualizado correctamente'
-                    ];
-                } else {
-                    error_log("Error al actualizar usuario: " . $conn->error);
-                    $response['message'] = 'Error al actualizar usuario: ' . $conn->error;
-                }
-        
-                echo json_encode($response);
-                die();
+                $foto = $target_dir . basename($_FILES["foto"]["name"]);
+                move_uploaded_file($_FILES["foto"]["tmp_name"], $foto);
+
+                // Actualizar la consulta para incluir la foto
+                $sql_actualizar = "UPDATE usuarios SET nombre = '$nombre', apellido = '$apellido', telefono = '$telefono', email = '$email', plan = '$plan', dia_vencimiento = $dia_vencimiento, deuda = $deuda, foto = '$foto' WHERE id_usuario = $id_usuario";
+            } else {
+                // Si no hay nueva foto, no actualizar el campo foto
+                $sql_actualizar = "UPDATE usuarios SET nombre = '$nombre', apellido = '$apellido', telefono = '$telefono', email = '$email', plan = '$plan', dia_vencimiento = $dia_vencimiento, deuda = $deuda WHERE id_usuario = $id_usuario";
             }
+
+            if ($conn->query($sql_actualizar) === TRUE) {
+                $response = [
+                    'status' => 'success',
+                    'message' => 'Usuario actualizado correctamente'
+                ];
+            } else {
+                error_log("Error al actualizar usuario: " . $conn->error);
+                $response['message'] = 'Error al actualizar usuario: ' . $conn->error;
+            }
+
+            echo json_encode($response);
+            die();
+        }
         break;
-              
 
     case 'marcar_deuda_pagada':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = json_decode(file_get_contents("php://input"), true);
             $id_deuda = isset($data['id_deuda']) ? intval($data['id_deuda']) : null;
-    
+
             if ($id_deuda !== null) {
                 error_log("Ejecutando acción 'marcar_deuda_pagada' para ID de deuda: $id_deuda");
                 // Marcar la deuda específica como pagada
@@ -289,7 +295,7 @@ switch ($action) {
                 $sql_marcar_pagada = "UPDATE deudas 
                                       SET estado = 'pagada', fecha_pago = '$fecha_pago' 
                                       WHERE id_deuda = $id_deuda AND estado = 'pendiente'";
-        
+
                 if ($conn->query($sql_marcar_pagada) === TRUE) {
                     $response = [
                         'status' => 'success',
@@ -299,7 +305,7 @@ switch ($action) {
                     $response['message'] = 'Error al actualizar deuda: ' . $conn->error;
                     error_log($response['message']);
                 }
-        
+
                 echo json_encode($response);
                 die();
             } else {
@@ -310,13 +316,17 @@ switch ($action) {
             error_log("Método HTTP incorrecto para la acción 'marcar_deuda_pagada'");
         }
         break;
+
     case 'total_deuda':
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             error_log("Ejecutando acción 'total_deuda'");
-            // Obtener la deuda total de todos los usuarios con deudas pendientes
-            $sql_total_deuda = "SELECT SUM(monto) AS deuda_total FROM deudas WHERE estado = 'pendiente'";
+            // Obtener la deuda total de todos los usuarios con deudas pendientes considerando el día de vencimiento
+            $dia_actual = date('j');
+            $sql_total_deuda = "SELECT SUM(d.monto) AS deuda_total FROM deudas d
+                                INNER JOIN usuarios u ON u.id_usuario = d.id_usuario
+                                WHERE d.estado = 'pendiente' AND u.dia_vencimiento <= $dia_actual";
             $resultado_total_deuda = ejecutarConsulta($sql_total_deuda, $conn);
-        
+
             if (isset($resultado_total_deuda['error'])) {
                 $response['message'] = 'Error al obtener la deuda total: ' . $resultado_total_deuda['error'];
             } else {
@@ -331,7 +341,7 @@ switch ($action) {
             error_log("Método HTTP incorrecto para la acción 'total_deuda'");
         }
         break;
-    
+
     default:
         error_log("Acción no válida o no especificada: $action");
         echo json_encode($response);
