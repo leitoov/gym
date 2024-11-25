@@ -129,7 +129,7 @@ switch ($action) {
                 // Obtener el día actual
                 $dia_actual = date('j');
                 
-                // Actualizar la consulta para unir la tabla usuarios, deudas y planes
+                // Actualizar la consulta para unir la tabla usuarios, deudas y planes, filtrando solo deudas pendientes
                 $sql_deudores = "
                     SELECT u.id_usuario, u.nombre, u.apellido, 
                            COALESCE(u.telefono, 'No disponible') AS telefono, 
@@ -137,11 +137,11 @@ switch ($action) {
                            p.nombre AS plan, p.precio AS monto_deuda,
                            d.id_deuda, d.fecha_generacion, d.estado 
                     FROM usuarios u
-                    LEFT JOIN deudas d ON u.id_usuario = d.id_usuario AND d.estado = 'pendiente'
                     INNER JOIN planes p ON u.plan = p.nombre
-                    WHERE u.dia_vencimiento <= $dia_actual AND (d.id_deuda IS NULL OR d.estado = 'pendiente')
+                    LEFT JOIN deudas d ON u.id_usuario = d.id_usuario AND d.estado = 'pendiente'
+                    WHERE u.dia_vencimiento <= $dia_actual AND (d.estado = 'pendiente' OR d.id_deuda IS NULL)
                     ORDER BY u.id_usuario, d.fecha_generacion";
-        
+            
                 $deudores = ejecutarConsulta($sql_deudores, $conn);
                 
                 if (isset($deudores['error'])) {
@@ -153,6 +153,10 @@ switch ($action) {
                     ];
                     // Agrupar las deudas por usuario
                     foreach ($deudores as $deuda) {
+                        // Omitir deudas que no están pendientes
+                        if ($deuda['estado'] !== 'pendiente' && $deuda['id_deuda'] !== null) {
+                            continue;
+                        }
                         $id_usuario = $deuda['id_usuario'];
                         if (!isset($response['deudores'][$id_usuario])) {
                             $response['deudores'][$id_usuario] = [
@@ -165,12 +169,15 @@ switch ($action) {
                                 'deudas' => []
                             ];
                         }
-                        $response['deudores'][$id_usuario]['deudas'][] = [
-                            'id_deuda' => $deuda['id_deuda'],
-                            'monto' => $deuda['monto_deuda'],  // Utilizar el monto del plan desde la tabla planes
-                            'fecha_generacion' => $deuda['fecha_generacion'],
-                            'estado' => $deuda['estado']
-                        ];
+                        // Añadir la deuda solo si tiene un id válido (es decir, existe una deuda pendiente)
+                        if ($deuda['id_deuda'] !== null) {
+                            $response['deudores'][$id_usuario]['deudas'][] = [
+                                'id_deuda' => $deuda['id_deuda'],
+                                'monto' => $deuda['monto_deuda'],  // Utilizar el monto del plan desde la tabla planes
+                                'fecha_generacion' => $deuda['fecha_generacion'],
+                                'estado' => $deuda['estado']
+                            ];
+                        }
                     }
                     // Convertir el array asociativo en un array indexado
                     $response['deudores'] = array_values($response['deudores']);
