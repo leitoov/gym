@@ -297,10 +297,6 @@ if (!isset($_SESSION['admin_id'])) {
             </div>
             <div class="input-group mb-4">
                 <input type="text" class="form-control" id="buscarInput" placeholder="Buscar por nombre, correo o teléfono...">
-                <div class="input-group-append">
-                    <button class="btn btn-primary" id="buscarBtn"><i class="fas fa-search"></i> Buscar</button>
-                    <button class="btn btn-secondary" id="limpiarBtn"><i class="fas fa-times"></i> Limpiar</button>
-                </div>
             </div>
 
             <div id="usuariosContainer">
@@ -519,9 +515,55 @@ if (!isset($_SESSION['admin_id'])) {
                         }
                     });
                 });
-            });
+
+                // Buscar usuarios dinámicamente
+                $('#buscarInput').on('input', function () {
+                    let termino = $(this).val().trim();
+                    buscarUsuarios(termino);
+                });
+
+                function buscarUsuarios(termino) {
+                    if (termino.length >= 3) {
+                        $('#usuariosContainer').hide();
+                        $('#resultadoBusqueda').show();
+
+                        $.ajax({
+                            url: 'api_usuarios.php?action=buscar',
+                            method: 'GET',
+                            data: { termino: termino },
+                            dataType: 'json',
+                            success: function (response) {
+                                if (response.status === 'success') {
+                                    let resultados = response.usuarios;
+                                    let html = '';
+
+                                    if (resultados.length > 0) {
+                                        resultados.forEach(function (usuario) {
+                                            html += generarTarjetaUsuario(usuario);
+                                        });
+                                    } else {
+                                        html = '<p class="text-center">No se encontraron resultados para la búsqueda.</p>';
+                                    }
+
+                                    $('#resultadoBusqueda').html(html);
+                                } else {
+                                    Swal.fire('Error', response.message, 'error');
+                                }
+                            },
+                            error: function (xhr, status, error) {
+                                console.error('Error en la solicitud AJAX:', status, error);
+                                Swal.fire('Error', 'Hubo un problema al realizar la búsqueda.', 'error');
+                            }
+                        });
+                    } else if (termino === '') {
+                        $('#usuariosContainer').show();
+                        $('#resultadoBusqueda').hide().html('');
+                    }
+                }
 
             function cargarUsuarios() {
+                $('#usuariosContainer').show();
+                $('#resultadoBusqueda').hide();
                 $.ajax({
                     url: 'api_usuarios.php?action=usuarios',
                     method: 'GET',
@@ -532,27 +574,7 @@ if (!isset($_SESSION['admin_id'])) {
                             let usuariosContainer = '';
 
                             usuarios.forEach(function(usuario) {
-                                usuariosContainer += `
-                                    <div class="user-card">
-                                        <div class="user-info">
-                                            <div class="user-photo">
-                                                ${usuario.foto ? `<img src="${usuario.foto}" alt="Foto de ${usuario.nombre}">` : '<img src="uploads/descarga.png" alt="Foto de usuario">'}
-                                            </div>
-                                            <div class="user-details">
-                                                <h5>${usuario.nombre} ${usuario.apellido}</h5>
-                                                <p><strong>Teléfono:</strong> ${usuario.telefono}</p>
-                                                <p><strong>Correo Electrónico:</strong> ${usuario.email}</p>
-                                                <p><strong>Plan:</strong> ${usuario.plan}</p>
-                                                <p><strong>Día de Vencimiento:</strong> ${usuario.dia_vencimiento}</p>
-                                                <p><strong>Deuda:</strong> AR$ ${usuario.deuda}</p>
-                                            </div>
-                                            <div class="user-actions">
-                                                <button onclick="abrirModalEdicion(${usuario.id_usuario})" class="btn btn-warning btn-custom"><i class="fas fa-edit"></i> Editar</button>
-                                                <a href="historial.php?id_usuario=${usuario.id_usuario}" class="btn btn-info btn-custom"><i class="fas fa-history"></i> Ver Historial</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                `;
+                                usuariosContainer += generarTarjetaUsuario(usuario);
                             });
 
                             $('#usuariosContainer').html(usuariosContainer);
@@ -619,66 +641,29 @@ if (!isset($_SESSION['admin_id'])) {
                     }
                 });
             }
-        
-        
-            $(document).ready(function () {
-                $('#buscarBtn').click(function () {
-                    let termino = $('#buscarInput').val().trim();
-
-                    if (termino === '') {
-                        Swal.fire('Advertencia', 'Por favor, ingresa un término para buscar.', 'warning');
-                        return;
-                    }
-
-                    // Ocultar usuariosContainer y realizar búsqueda
-                    $('#usuariosContainer').hide();
-                    $('#resultadoBusqueda').show();
-
-                    $.ajax({
-                        url: 'api_usuarios.php?action=buscar',
-                        method: 'GET',
-                        data: { termino: termino },
-                        dataType: 'json',
-                        success: function (response) {
-                            if (response.status === 'success') {
-                                let resultados = response.usuarios;
-                                let html = '';
-
-                                if (resultados.length > 0) {
-                                    resultados.forEach(function (usuario) {
-                                        html += `
+            function generarTarjetaUsuario(usuario) {
+            return `
                                             <div class="user-card">
                                                 <div class="user-info">
+                                                    <div class="user-photo">
+                                                        ${usuario.foto ? `<img src="${usuario.foto}" alt="Foto de ${usuario.nombre}">` : '<img src="uploads/descarga.png" alt="Foto de usuario">'}
+                                                    </div>
+                                                <div class="user-details">
                                                     <h5>${usuario.nombre} ${usuario.apellido}</h5>
                                                     <p><strong>Teléfono:</strong> ${usuario.telefono}</p>
                                                     <p><strong>Correo Electrónico:</strong> ${usuario.email}</p>
                                                     <p><strong>Plan:</strong> ${usuario.plan}</p>
                                                     <p><strong>Día de Vencimiento:</strong> ${usuario.dia_vencimiento}</p>
+                                                    <p><strong>Deuda:</strong> AR$ ${usuario.deuda}</p>
+                                                </div>
+                                                    <div class="user-actions">
+                                                        <button onclick="abrirModalEdicion(${usuario.id_usuario})" class="btn btn-warning btn-custom"><i class="fas fa-edit"></i> Editar</button>
+                                                        <a href="historial.php?id_usuario=${usuario.id_usuario}" class="btn btn-info btn-custom"><i class="fas fa-history"></i> Ver Historial</a>
+                                                    </div>
                                                 </div>
                                             </div>
                                         `;
-                                    });
-                                } else {
-                                    html = '<p class="text-center">No se encontraron resultados para la búsqueda.</p>';
                                 }
-
-                                $('#resultadoBusqueda').html(html);
-                            } else {
-                                Swal.fire('Error', response.message, 'error');
-                            }
-                        },
-                        error: function (xhr, status, error) {
-                            console.error('Error en la solicitud AJAX:', status, error);
-                            Swal.fire('Error', 'Hubo un problema al realizar la búsqueda.', 'error');
-                        }
-                    });
-                });
-
-                $('#limpiarBtn').click(function () {
-                    $('#buscarInput').val('');
-                    $('#usuariosContainer').show();
-                    $('#resultadoBusqueda').hide().html('');
-                });
             });
 
         </script>
