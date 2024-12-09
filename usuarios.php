@@ -641,6 +641,9 @@ if (!isset($_SESSION['admin_id'])) {
                     }
                 });
             }
+
+            // Hacer la función accesible globalmente
+            window.abrirModalEdicion = abrirModalEdicion;
             function generarTarjetaUsuario(usuario) {
             return `
                                             <div class="user-card">
