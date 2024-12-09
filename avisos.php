@@ -21,6 +21,8 @@ if ($conn->connect_error) {
     die("Error de conexión a la base de datos");
 }
 
+
+
 // Obtener la lista de usuarios con deudas y sumar el total de sus deudas
 $sql_deudores = "SELECT u.id_usuario, u.nombre, u.apellido, u.telefono, SUM(d.monto) AS total_deuda
                  FROM usuarios u
@@ -100,11 +102,17 @@ if (isset($_POST['enviar_notificacion'])) {
 }
 
 // Mostrar cantidad de avisos enviados por usuario
-$sql_avisos = "SELECT u.id_usuario, u.nombre, u.apellido, COUNT(h.id_historial) AS total_avisos 
+$sql_avisos = "SELECT u.id_usuario, u.nombre, u.apellido, 
+                      COUNT(h.id_historial) AS total_avisos 
                FROM usuarios u
-               LEFT JOIN historial_avisos h ON u.id_usuario = h.id_usuario
+               LEFT JOIN historial_avisos h 
+               ON u.id_usuario = h.id_usuario
+               WHERE h.id_historial IS NOT NULL
                GROUP BY u.id_usuario";
 $avisos = $conn->query($sql_avisos);
+
+
+
 
 if ($avisos === false) {
     error_log("Error al obtener el historial de avisos: " . $conn->error);
