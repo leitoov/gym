@@ -48,46 +48,44 @@ function ejecutarConsulta($sql, $conn) {
 // Lógica de las acciones disponibles
 switch ($action) {
     case 'totales':
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            error_log("Ejecutando acción 'totales'");
-    
-            $response = [
-                'status' => 'success',
-                'total_usuarios' => 0,
-                'total_deudores' => 0
-            ];
-    
-            // Obtener total de usuarios
-            $sql_usuarios = "SELECT COUNT(*) as total FROM usuarios";
-            $resultado_usuarios = ejecutarConsulta($sql_usuarios, $conn);
-    
-            if (isset($resultado_usuarios[0])) {
-                $response['total_usuarios'] = $resultado_usuarios[0]['total'];
+            if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+                error_log("Ejecutando acción 'totales'");
+        
+                $response = [
+                    'status' => 'success',
+                    'total_usuarios' => 0,
+                    'total_deudores' => 0
+                ];
+        
+                // Obtener total de usuarios
+                $sql_usuarios = "SELECT COUNT(*) as total FROM usuarios";
+                $resultado_usuarios = ejecutarConsulta($sql_usuarios, $conn);
+        
+                if (isset($resultado_usuarios[0])) {
+                    $response['total_usuarios'] = $resultado_usuarios[0]['total'];
+                } else {
+                    error_log("Error al obtener el total de usuarios: " . json_encode($resultado_usuarios));
+                }
+        
+                // Obtener total de deudores (usuarios con deudas pendientes en base al día de vencimiento)
+                $dia_actual = date('j');
+                $sql_deudores = "SELECT COUNT(DISTINCT u.id_usuario) as total FROM usuarios u 
+                                LEFT JOIN deudas d ON u.id_usuario = d.id_usuario AND d.estado = 'pendiente'
+                                WHERE u.dia_vencimiento <= $dia_actual AND d.estado = 'pendiente'";
+                $resultado_deudores = ejecutarConsulta($sql_deudores, $conn);
+        
+                if (isset($resultado_deudores[0])) {
+                    $response['total_deudores'] = $resultado_deudores[0]['total'];
+                } else {
+                    error_log("Error al obtener el total de deudores: " . json_encode($resultado_deudores));
+                }
+        
+                echo json_encode($response);
+                die();
             } else {
-                error_log("Error al obtener el total de usuarios: " . json_encode($resultado_usuarios));
+                error_log("Método HTTP incorrecto para la acción 'totales'");
             }
-    
-            // Obtener total de deudores (usuarios con deudas pendientes en base al día de vencimiento)
-            $dia_actual = date('j');
-            $sql_deudores = "SELECT COUNT(DISTINCT u.id_usuario) as total FROM usuarios u 
-                             LEFT JOIN deudas d ON u.id_usuario = d.id_usuario AND d.estado = 'pendiente'
-                             WHERE u.dia_vencimiento <= $dia_actual AND d.estado = 'pendiente'";
-            $resultado_deudores = ejecutarConsulta($sql_deudores, $conn);
-    
-            if (isset($resultado_deudores[0])) {
-                $response['total_deudores'] = $resultado_deudores[0]['total'];
-            } else {
-                error_log("Error al obtener el total de deudores: " . json_encode($resultado_deudores));
-            }
-    
-            echo json_encode($response);
-            die();
-        } else {
-            error_log("Método HTTP incorrecto para la acción 'totales'");
-        }
     break;
-    
-
     case 'usuarios':
             if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             error_log("Ejecutando acción 'usuarios'");
@@ -374,6 +372,29 @@ switch ($action) {
         }
         break;
 
+    case 'buscar':
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+                $termino = isset($_GET['termino']) ? trim($_GET['termino']) : '';
+        
+                if ($termino === '') {
+                    echo json_encode(['status' => 'error', 'message' => 'Término de búsqueda vacío']);
+                    die();
+                }
+        
+                $sql_buscar = "SELECT * FROM usuarios 
+                               WHERE nombre LIKE '%$termino%' 
+                                  OR email LIKE '%$termino%' 
+                                  OR telefono LIKE '%$termino%'";
+                $resultados = ejecutarConsulta($sql_buscar, $conn);
+        
+                if (isset($resultados['error'])) {
+                    echo json_encode(['status' => 'error', 'message' => 'Error al buscar usuarios: ' . $resultados['error']]);
+                } else {
+                    echo json_encode(['status' => 'success', 'usuarios' => $resultados]);
+                }
+                die();
+        }
+    break;
     default:
         error_log("Acción no válida o no especificada: $action");
         echo json_encode($response);
