@@ -44,7 +44,11 @@ function ejecutarConsulta($sql, $conn) {
     }
     return $data;
 }
-
+function ajustarDiaVencimiento($dia, $mes, $anio) {
+    // Calcular el último día válido del mes
+    $ultimo_dia = cal_days_in_month(CAL_GREGORIAN, $mes, $anio);
+    return min($dia, $ultimo_dia); // Retorna el día ajustado si excede el último día del mes
+}
 // Lógica de las acciones disponibles
 switch ($action) {
     case 'totales':
@@ -87,63 +91,76 @@ switch ($action) {
             }
     break;
     case 'usuarios':
-            if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            error_log("Ejecutando acción 'usuarios'");
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+                error_log("Ejecutando acción 'usuarios'");
+                // Obtener el día y ajustar al último día del mes actual
+                $dia_actual = date('j'); // Día actual
+                $mes_actual = date('n'); // Mes actual
+                $anio_actual = date('Y'); // Año actual
+                $dia_ajustado = ajustarDiaVencimiento($dia_actual, $mes_actual, $anio_actual);
+                    
+                // Consulta ajustada
+                $sql_usuarios = "SELECT u.*, 
+                                (SELECT SUM(d.monto) 
+                                FROM deudas d 
+                                WHERE d.id_usuario = u.id_usuario AND d.estado = 'pendiente' AND u.dia_vencimiento <= $dia_ajustado) AS deuda_total
+                                FROM usuarios u";
+                                
+                $usuarios = ejecutarConsulta($sql_usuarios, $conn);
             
-            // Obtener todos los usuarios y calcular la deuda acumulada considerando el día de vencimiento
-            $dia_actual = date('j');
-            $sql_usuarios = "SELECT u.*, 
-                            (SELECT SUM(d.monto) 
-                            FROM deudas d 
-                            WHERE d.id_usuario = u.id_usuario AND d.estado = 'pendiente' AND u.dia_vencimiento <= $dia_actual) AS deuda_total
-                            FROM usuarios u";
-                             
-            $usuarios = ejecutarConsulta($sql_usuarios, $conn);
-        
-            if (isset($usuarios['error'])) {
-                $response['message'] = 'Error al obtener usuarios: ' . $usuarios['error'];
-            } else {
-                // Formatear la respuesta con los usuarios y su deuda total acumulada
-                $response = [
-                    'status' => 'success',
-                    'usuarios' => array_map(function($usuario) {
-                        // Asegurarnos de que la deuda sea al menos 0 si no tiene deudas
-                        $usuario['deuda'] = $usuario['deuda_total'] ? floatval($usuario['deuda_total']) : 0.0;
-                        unset($usuario['deuda_total']); // Remover el campo innecesario
-                        return $usuario;
-                    }, $usuarios)
-                ];
-            }
-        
-            echo json_encode($response);
-            die();
+                if (isset($usuarios['error'])) {
+                    $response['message'] = 'Error al obtener usuarios: ' . $usuarios['error'];
+                } else {
+                    // Formatear la respuesta con los usuarios y su deuda total acumulada
+                    $response = [
+                        'status' => 'success',
+                        'usuarios' => array_map(function($usuario) {
+                            // Asegurarnos de que la deuda sea al menos 0 si no tiene deudas
+                            $usuario['deuda'] = $usuario['deuda_total'] ? floatval($usuario['deuda_total']) : 0.0;
+                            unset($usuario['deuda_total']); // Remover el campo innecesario
+                            return $usuario;
+                        }, $usuarios)
+                    ];
+                }
+            
+                echo json_encode($response);
+                die();
         } else {
-            error_log("Método HTTP incorrecto para la acción 'usuarios'");
+                error_log("Método HTTP incorrecto para la acción 'usuarios'");
         }
         break;
 
-        case 'deudores':
+    case 'deudores':
             if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 error_log("Ejecutando acción 'deudores'");
-                
-                // Obtener el día actual
-                $dia_actual = date('j');
-                
-                // Actualizar la consulta para unir la tabla usuarios, deudas y planes, filtrando solo deudas pendientes
-                $sql_deudores = "
-                    SELECT u.id_usuario, u.nombre, u.apellido, 
-                           COALESCE(u.telefono, 'No disponible') AS telefono, 
-                           COALESCE(u.email, 'No disponible') AS email, 
-                           p.nombre AS plan, p.precio AS monto_deuda,
-                           d.id_deuda, d.fecha_generacion, d.estado 
-                    FROM usuarios u
-                    INNER JOIN planes p ON u.plan = p.nombre
-                    LEFT JOIN deudas d ON u.id_usuario = d.id_usuario AND d.estado = 'pendiente'
-                    WHERE u.dia_vencimiento <= $dia_actual AND d.estado = 'pendiente'
+        
+                // Función para obtener el último día del mes si el día de vencimiento es mayor al disponible
+                function ajustarFechaVencimiento($fecha_vencimiento) {
+                    $timestamp = strtotime($fecha_vencimiento);
+                    $dia_vencimiento = date('j', $timestamp);
+                    $mes = date('n', $timestamp);
+                    $anio = date('Y', $timestamp);
+        
+                    $ultimo_dia_mes = date('t', strtotime("$anio-$mes-01"));
+                    if ($dia_vencimiento > $ultimo_dia_mes) {
+                        return "$anio-$mes-$ultimo_dia_mes";
+                    }
+                    return $fecha_vencimiento;
+                }
+        
+                // Consulta para obtener usuarios con deudas pendientes
+                $sql_deudores = "SELECT u.id_usuario, u.nombre, u.apellido, 
+                    COALESCE(u.telefono, 'No disponible') AS telefono, 
+                    COALESCE(u.email, 'No disponible') AS email, 
+                    COALESCE(u.plan, 'No especificado') AS plan, 
+                    d.id_deuda, d.monto, d.fecha_generacion, d.fecha_vencimiento, d.estado 
+                    FROM usuarios u 
+                    INNER JOIN deudas d ON u.id_usuario = d.id_usuario 
+                    WHERE d.estado = 'pendiente' 
                     ORDER BY u.id_usuario, d.fecha_generacion";
-            
+        
                 $deudores = ejecutarConsulta($sql_deudores, $conn);
-                
+        
                 if (isset($deudores['error'])) {
                     $response['message'] = 'Error al obtener deudores: ' . $deudores['error'];
                 } else {
@@ -165,15 +182,13 @@ switch ($action) {
                                 'deudas' => []
                             ];
                         }
-                        // Añadir la deuda solo si tiene un id válido (es decir, existe una deuda pendiente)
-                        if ($deuda['id_deuda'] !== null) {
-                            $response['deudores'][$id_usuario]['deudas'][] = [
-                                'id_deuda' => $deuda['id_deuda'],
-                                'monto' => $deuda['monto_deuda'],  // Utilizar el monto del plan desde la tabla planes
-                                'fecha_generacion' => $deuda['fecha_generacion'],
-                                'estado' => $deuda['estado']
-                            ];
-                        }
+                        $response['deudores'][$id_usuario]['deudas'][] = [
+                            'id_deuda' => $deuda['id_deuda'],
+                            'monto' => $deuda['monto'],
+                            'fecha_generacion' => $deuda['fecha_generacion'],
+                            'fecha_vencimiento' => ajustarFechaVencimiento($deuda['fecha_vencimiento']),
+                            'estado' => $deuda['estado']
+                        ];
                     }
                     // Convertir el array asociativo en un array indexado
                     $response['deudores'] = array_values($response['deudores']);
@@ -183,8 +198,7 @@ switch ($action) {
             } else {
                 error_log("Método HTTP incorrecto para la acción 'deudores'");
             }
-            break;
-        
+        break;
         
         
 
