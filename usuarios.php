@@ -295,9 +295,19 @@ if (!isset($_SESSION['admin_id'])) {
             <div id="deudaTotalContainer" class="total-deuda-container">
                 <h4>Total Deuda Pendiente: AR$ <span id="deudaTotal">0.00</span></h4>
             </div>
+            <div class="input-group mb-4">
+                <input type="text" class="form-control" id="buscarInput" placeholder="Buscar por nombre, correo o teléfono...">
+                <div class="input-group-append">
+                    <button class="btn btn-primary" id="buscarBtn"><i class="fas fa-search"></i> Buscar</button>
+                    <button class="btn btn-secondary" id="limpiarBtn"><i class="fas fa-times"></i> Limpiar</button>
+                </div>
+            </div>
 
             <div id="usuariosContainer">
                 <!-- Los usuarios se cargarán dinámicamente usando AJAX -->
+            </div>
+            <div id="resultadoBusqueda" style="display: none;">
+                <!-- Los resultados de la búsqueda se mostrarán aquí -->
             </div>
         </div>
 
@@ -451,33 +461,35 @@ if (!isset($_SESSION['admin_id'])) {
                 });
 
                 // Guardar el nuevo usuario
-                $('#guardarNuevoUsuario').click(function() {
-                    let formData = new FormData($('#anadirUsuarioForm')[0]);
+                $('#guardarNuevoUsuario').click(
+                    function() {
+                        let formData = new FormData($('#anadirUsuarioForm')[0]);
 
-                    $.ajax({
-                        url: 'api_usuarios.php?action=anadir',
-                        method: 'POST',
-                        data: formData,
-                        contentType: false,
-                        processData: false,
-                        dataType: 'json',
-                        success: function(response) {
-                            if (response.status === 'success') {
-                                $('#anadirUsuarioModal').modal('hide');
-                                Swal.fire('Éxito', 'Usuario añadido correctamente', 'success').then(() => {
-                                    cargarUsuarios();
-                                    cargarDeudaTotal();
-                                });
-                            } else {
-                                Swal.fire('Error', response.message, 'error');
+                        $.ajax({
+                            url: 'api_usuarios.php?action=anadir',
+                            method: 'POST',
+                            data: formData,
+                            contentType: false,
+                            processData: false,
+                            dataType: 'json',
+                            success: function(response) {
+                                if (response.status === 'success') {
+                                    $('#anadirUsuarioModal').modal('hide');
+                                    Swal.fire('Éxito', 'Usuario añadido correctamente', 'success').then(() => {
+                                        cargarUsuarios();
+                                        cargarDeudaTotal();
+                                    });
+                                } else {
+                                    Swal.fire('Error', response.message, 'error');
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                console.error('Error en la solicitud AJAX:', status, error);
+                                Swal.fire('Error', 'Hubo un problema al añadir el usuario', 'error');
                             }
-                        },
-                        error: function(xhr, status, error) {
-                            console.error('Error en la solicitud AJAX:', status, error);
-                            Swal.fire('Error', 'Hubo un problema al añadir el usuario', 'error');
-                        }
-                    });
-                });
+                        });
+                    }
+                );
 
                 // Guardar los cambios realizados en el usuario
                 $('#guardarCambios').click(function() {
@@ -607,6 +619,68 @@ if (!isset($_SESSION['admin_id'])) {
                     }
                 });
             }
+        
+        
+            $(document).ready(function () {
+                $('#buscarBtn').click(function () {
+                    let termino = $('#buscarInput').val().trim();
+
+                    if (termino === '') {
+                        Swal.fire('Advertencia', 'Por favor, ingresa un término para buscar.', 'warning');
+                        return;
+                    }
+
+                    // Ocultar usuariosContainer y realizar búsqueda
+                    $('#usuariosContainer').hide();
+                    $('#resultadoBusqueda').show();
+
+                    $.ajax({
+                        url: 'api_usuarios.php?action=buscar',
+                        method: 'GET',
+                        data: { termino: termino },
+                        dataType: 'json',
+                        success: function (response) {
+                            if (response.status === 'success') {
+                                let resultados = response.usuarios;
+                                let html = '';
+
+                                if (resultados.length > 0) {
+                                    resultados.forEach(function (usuario) {
+                                        html += `
+                                            <div class="user-card">
+                                                <div class="user-info">
+                                                    <h5>${usuario.nombre} ${usuario.apellido}</h5>
+                                                    <p><strong>Teléfono:</strong> ${usuario.telefono}</p>
+                                                    <p><strong>Correo Electrónico:</strong> ${usuario.email}</p>
+                                                    <p><strong>Plan:</strong> ${usuario.plan}</p>
+                                                    <p><strong>Día de Vencimiento:</strong> ${usuario.dia_vencimiento}</p>
+                                                </div>
+                                            </div>
+                                        `;
+                                    });
+                                } else {
+                                    html = '<p class="text-center">No se encontraron resultados para la búsqueda.</p>';
+                                }
+
+                                $('#resultadoBusqueda').html(html);
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('Error en la solicitud AJAX:', status, error);
+                            Swal.fire('Error', 'Hubo un problema al realizar la búsqueda.', 'error');
+                        }
+                    });
+                });
+
+                $('#limpiarBtn').click(function () {
+                    $('#buscarInput').val('');
+                    $('#usuariosContainer').show();
+                    $('#resultadoBusqueda').hide().html('');
+                });
+            });
+
         </script>
 
     </body>
