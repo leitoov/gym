@@ -142,20 +142,22 @@ switch ($action) {
                     $anio = date('Y', $timestamp);
         
                     $ultimo_dia_mes = date('t', strtotime("$anio-$mes-01"));
-                    return ($dia_vencimiento > $ultimo_dia_mes) ? "$anio-$mes-$ultimo_dia_mes" : $fecha_vencimiento;
+                    if ($dia_vencimiento > $ultimo_dia_mes) {
+                        return "$anio-$mes-$ultimo_dia_mes";
+                    }
+                    return $fecha_vencimiento;
                 }
         
                 // Consulta para obtener usuarios con deudas pendientes
                 $sql_deudores = "SELECT u.id_usuario, u.nombre, u.apellido, 
-                                        COALESCE(u.telefono, 'No disponible') AS telefono, 
-                                        COALESCE(u.email, 'No disponible') AS email, 
-                                        COALESCE(u.plan, 'No especificado') AS plan, 
-                                        u.deuda AS deuda_antigua, 
-                                        d.id_deuda, d.monto, d.fecha_generacion, d.fecha_vencimiento, d.estado
-                                 FROM usuarios u
-                                 LEFT JOIN deudas d ON u.id_usuario = d.id_usuario AND d.estado = 'pendiente'
-                                 WHERE u.deuda > 0 OR d.id_deuda IS NOT NULL
-                                 ORDER BY u.id_usuario, d.fecha_generacion";
+                    COALESCE(u.telefono, 'No disponible') AS telefono, 
+                    COALESCE(u.email, 'No disponible') AS email, 
+                    COALESCE(u.plan, 'No especificado') AS plan, 
+                    d.id_deuda, d.monto, d.fecha_generacion, d.fecha_vencimiento, d.estado 
+                    FROM usuarios u 
+                    INNER JOIN deudas d ON u.id_usuario = d.id_usuario 
+                    WHERE d.estado = 'pendiente' 
+                    ORDER BY u.id_usuario, d.fecha_generacion";
         
                 $deudores = ejecutarConsulta($sql_deudores, $conn);
         
@@ -177,35 +179,16 @@ switch ($action) {
                                 'telefono' => $deuda['telefono'],
                                 'email' => $deuda['email'],
                                 'plan' => $deuda['plan'],
-                                'deudas' => [],
-                                'total_deuda' => 0 // Inicializar el total de deuda
+                                'deudas' => []
                             ];
                         }
-        
-                        // Sumar deuda antigua una sola vez (si existe)
-                        if ($deuda['deuda_antigua'] > 0) {
-                            $response['deudores'][$id_usuario]['deudas'][] = [
-                                'id_deuda' => null, // No tiene ID porque es deuda antigua
-                                'monto' => $deuda['deuda_antigua'],
-                                'fecha_generacion' => null,
-                                'fecha_vencimiento' => null,
-                                'estado' => 'pendiente'
-                            ];
-                            $response['deudores'][$id_usuario]['total_deuda'] += $deuda['deuda_antigua'];
-                            $deuda['deuda_antigua'] = 0; // Evitar agregar varias veces
-                        }
-        
-                        // Agregar deudas específicas si existen
-                        if ($deuda['id_deuda'] !== null) {
-                            $response['deudores'][$id_usuario]['deudas'][] = [
-                                'id_deuda' => $deuda['id_deuda'],
-                                'monto' => $deuda['monto'],
-                                'fecha_generacion' => $deuda['fecha_generacion'],
-                                'fecha_vencimiento' => ajustarFechaVencimiento($deuda['fecha_vencimiento']),
-                                'estado' => $deuda['estado']
-                            ];
-                            $response['deudores'][$id_usuario]['total_deuda'] += $deuda['monto'];
-                        }
+                        $response['deudores'][$id_usuario]['deudas'][] = [
+                            'id_deuda' => $deuda['id_deuda'],
+                            'monto' => $deuda['monto'],
+                            'fecha_generacion' => $deuda['fecha_generacion'],
+                            'fecha_vencimiento' => ajustarFechaVencimiento($deuda['fecha_vencimiento']),
+                            'estado' => $deuda['estado']
+                        ];
                     }
                     // Convertir el array asociativo en un array indexado
                     $response['deudores'] = array_values($response['deudores']);
@@ -378,38 +361,29 @@ switch ($action) {
         }
         break;
 
-        case 'total_deuda':
-            if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-                error_log("Ejecutando acción 'total_deuda'");
-        
-                // Consulta para sumar las deudas específicas pendientes del mes y año actuales
-                $sql_total_deuda = "SELECT 
-                                        (SELECT SUM(d.monto) 
-                                         FROM deudas d 
-                                         WHERE d.estado = 'pendiente'
-                                           AND MONTH(d.fecha_generacion) = MONTH(NOW())
-                                           AND YEAR(d.fecha_generacion) = YEAR(NOW())) AS deuda_especifica,
-                                        (SELECT SUM(u.deuda) 
-                                         FROM usuarios u 
-                                         WHERE u.deuda > 0) AS deuda_antigua";
-        
-                $resultado_total_deuda = ejecutarConsulta($sql_total_deuda, $conn);
-        
-                if (isset($resultado_total_deuda['error'])) {
-                    $response['message'] = 'Error al obtener la deuda total: ' . $resultado_total_deuda['error'];
-                } else {
-                    $deuda_especifica = $resultado_total_deuda[0]['deuda_especifica'] ?? 0;
-                    $deuda_antigua = $resultado_total_deuda[0]['deuda_antigua'] ?? 0;
-        
-                    $response = [
-                        'status' => 'success',
-                        'deuda_total' => $deuda_especifica + $deuda_antigua
-                    ];
-                }
-        
-                echo json_encode($response);
-                die();
+    case 'total_deuda':
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            error_log("Ejecutando acción 'total_deuda'");
+            // Obtener la deuda total de todos los usuarios con deudas pendientes considerando el día de vencimiento
+            $dia_actual = date('j');
+            $sql_total_deuda = "SELECT SUM(d.monto) AS deuda_total FROM deudas d
+                                INNER JOIN usuarios u ON u.id_usuario = d.id_usuario
+                                WHERE d.estado = 'pendiente' AND u.dia_vencimiento <= $dia_actual";
+            $resultado_total_deuda = ejecutarConsulta($sql_total_deuda, $conn);
+
+            if (isset($resultado_total_deuda['error'])) {
+                $response['message'] = 'Error al obtener la deuda total: ' . $resultado_total_deuda['error'];
+            } else {
+                $response = [
+                    'status' => 'success',
+                    'deuda_total' => $resultado_total_deuda[0]['deuda_total'] !== null ? $resultado_total_deuda[0]['deuda_total'] : 0
+                ];
             }
+            echo json_encode($response);
+            die();
+        } else {
+            error_log("Método HTTP incorrecto para la acción 'total_deuda'");
+        }
         break;
 
     case 'buscar':
