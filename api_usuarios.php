@@ -132,10 +132,10 @@ switch ($action) {
         break;
 
     case 'deudores':
-            if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 error_log("Ejecutando acción 'deudores'");
         
-                // Función para obtener el último día del mes si el día de vencimiento es mayor al disponible
+                // Función para ajustar la fecha de vencimiento
                 function ajustarFechaVencimiento($fecha_vencimiento) {
                     $timestamp = strtotime($fecha_vencimiento);
                     $dia_vencimiento = date('j', $timestamp);
@@ -143,36 +143,31 @@ switch ($action) {
                     $anio = date('Y', $timestamp);
         
                     $ultimo_dia_mes = date('t', strtotime("$anio-$mes-01"));
-                    if ($dia_vencimiento > $ultimo_dia_mes) {
-                        return "$anio-$mes-$ultimo_dia_mes";
-                    }
-                    return $fecha_vencimiento;
+                    return ($dia_vencimiento > $ultimo_dia_mes) ? "$anio-$mes-$ultimo_dia_mes" : $fecha_vencimiento;
                 }
         
-                // Consulta para obtener usuarios con deudas pendientes
+                // Consulta para obtener usuarios con deudas pendientes y manuales
                 $sql_deudores = "SELECT u.id_usuario, u.nombre, u.apellido, 
-                    COALESCE(u.telefono, 'No disponible') AS telefono, 
-                    COALESCE(u.email, 'No disponible') AS email, 
-                    COALESCE(u.plan, 'No especificado') AS plan, 
-                    u.deuda AS deuda_manual, 
-                    d.id_deuda, d.monto, d.fecha_generacion, d.fecha_vencimiento, d.estado
-                    FROM usuarios u 
-                    LEFT JOIN deudas d ON u.id_usuario = d.id_usuario AND d.estado = 'pendiente'
-                    WHERE u.deuda > 0 OR d.id_deuda IS NOT NULL
-                    ORDER BY u.id_usuario, d.fecha_generacion";
+                                    COALESCE(u.telefono, 'No disponible') AS telefono, 
+                                    COALESCE(u.email, 'No disponible') AS email, 
+                                    COALESCE(u.plan, 'No especificado') AS plan, 
+                                    u.deuda AS deuda_manual, 
+                                    d.id_deuda, d.monto, d.fecha_generacion, d.fecha_vencimiento, d.estado
+                                 FROM usuarios u 
+                                 LEFT JOIN deudas d ON u.id_usuario = d.id_usuario AND d.estado = 'pendiente'
+                                 WHERE u.deuda > 0 OR d.id_deuda IS NOT NULL
+                                 ORDER BY u.id_usuario, d.fecha_generacion";
         
                 $deudores = ejecutarConsulta($sql_deudores, $conn);
         
                 if (isset($deudores['error'])) {
                     $response['message'] = 'Error al obtener deudores: ' . $deudores['error'];
                 } else {
-                    $response = [
-                        'status' => 'success',
-                        'deudores' => []
-                    ];
-                    // Agrupar las deudas por usuario
+                    $response = ['status' => 'success', 'deudores' => []];
+        
                     foreach ($deudores as $deuda) {
                         $id_usuario = $deuda['id_usuario'];
+        
                         if (!isset($response['deudores'][$id_usuario])) {
                             $response['deudores'][$id_usuario] = [
                                 'id_usuario' => $deuda['id_usuario'],
@@ -184,13 +179,14 @@ switch ($action) {
                                 'deudas' => []
                             ];
                         }
+        
                         // Agregar deuda manual (si existe)
                         if ($deuda['deuda_manual'] > 0) {
                             $response['deudores'][$id_usuario]['deudas'][] = [
-                                'id_deuda' => 'manual', // Identificador manual
+                                'id_deuda' => 'manual', // Identificador único para deuda manual
                                 'monto' => $deuda['deuda_manual'],
-                                'fecha_generacion' => date('Y-m-d'), // Fecha actual
-                                'fecha_vencimiento' => '--', // No tiene vencimiento
+                                'fecha_generacion' => '--', // Sin fecha de generación
+                                'fecha_vencimiento' => '--', // Sin fecha de vencimiento
                                 'estado' => 'pendiente'
                             ];
                         }
@@ -201,18 +197,20 @@ switch ($action) {
                                 'id_deuda' => $deuda['id_deuda'],
                                 'monto' => $deuda['monto'],
                                 'fecha_generacion' => $deuda['fecha_generacion'],
-                                'fecha_vencimiento' => $deuda['fecha_vencimiento'],
+                                'fecha_vencimiento' => ajustarFechaVencimiento($deuda['fecha_vencimiento']),
                                 'estado' => $deuda['estado']
                             ];
                         }
                     }
+        
                     // Convertir el array asociativo en un array indexado
                     $response['deudores'] = array_values($response['deudores']);
                 }
+        
                 echo json_encode($response);
                 die();
-            }
-        break;
+        }
+    break;
         
         
 
