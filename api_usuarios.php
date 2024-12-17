@@ -342,24 +342,44 @@ switch ($action) {
     case 'marcar_deuda_pagada':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = json_decode(file_get_contents("php://input"), true);
-            $id_deuda = isset($data['id_deuda']) ? intval($data['id_deuda']) : null;
+            $id_deuda = isset($data['id_deuda']) ? $data['id_deuda'] : null;
+            $id_usuario = isset($data['id_usuario']) ? intval($data['id_usuario']) : null;
 
-            if ($id_deuda !== null) {
-                error_log("Ejecutando acción 'marcar_deuda_pagada' para ID de deuda: $id_deuda");
-                // Marcar la deuda específica como pagada
-                $fecha_pago = date('Y-m-d'); // Obtener la fecha actual
-                $sql_marcar_pagada = "UPDATE deudas 
-                                      SET estado = 'pagada', fecha_pago = '$fecha_pago' 
-                                      WHERE id_deuda = $id_deuda AND estado = 'pendiente'";
-
-                if ($conn->query($sql_marcar_pagada) === TRUE) {
-                    $response = [
-                        'status' => 'success',
-                        'message' => 'Deuda marcada como pagada correctamente'
-                    ];
+            if ($id_deuda === null || $id_usuario === null) {
+                $response['message'] = "ID de deuda o usuario no proporcionado para la acción 'marcar_deuda_pagada'";
+                error_log($response['message']);
+                echo json_encode($response);
+                    die();
+                }
+        
+                if ($id_deuda === 'manual') {
+                    // Marcar deuda manual como pagada (actualizar el campo `deuda` en la tabla `usuarios`)
+                    $sql_actualizar_deuda_manual = "UPDATE usuarios SET deuda = 0 WHERE id_usuario = $id_usuario";
+        
+                    if ($conn->query($sql_actualizar_deuda_manual) === TRUE) {
+                        $response = [
+                            'status' => 'success',
+                            'message' => 'Deuda manual marcada como pagada correctamente'
+                        ];
+                    } else {
+                        $response['message'] = 'Error al actualizar deuda manual: ' . $conn->error;
+                        error_log($response['message']);
+                    }
                 } else {
-                    $response['message'] = 'Error al actualizar deuda: ' . $conn->error;
-                    error_log($response['message']);
+                    // Marcar deuda específica como pagada (de la tabla `deudas`)
+                    $fecha_pago = date('Y-m-d'); // Obtener la fecha actual
+                    $sql_marcar_pagada = "UPDATE deudas 
+                                SET estado = 'pagada', fecha_pago = '$fecha_pago' 
+                                WHERE id_deuda = $id_deuda AND estado = 'pendiente'";
+                    if ($conn->query($sql_marcar_pagada) === TRUE) {
+                        $response = [
+                            'status' => 'success',
+                            'message' => 'Deuda marcada como pagada correctamente'
+                        ];
+                    } else {
+                        $response['message'] = 'Error al actualizar deuda específica: ' . $conn->error;
+                        error_log($response['message']);
+                    }
                 }
 
                 echo json_encode($response);
@@ -367,8 +387,6 @@ switch ($action) {
             } else {
                 $response['message'] = "ID de deuda no proporcionado para la acción 'marcar_deuda_pagada'";
                 error_log($response['message']);
-            }
-        } else {
             error_log("Método HTTP incorrecto para la acción 'marcar_deuda_pagada'");
         }
         break;
