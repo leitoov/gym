@@ -75,7 +75,8 @@ switch ($action) {
                 $dia_actual = date('j');
                 $sql_deudores = "SELECT COUNT(DISTINCT u.id_usuario) as total FROM usuarios u 
                                 LEFT JOIN deudas d ON u.id_usuario = d.id_usuario AND d.estado = 'pendiente'
-                                WHERE u.dia_vencimiento <= $dia_actual AND d.estado = 'pendiente'";
+                                WHERE (d.estado = 'pendiente' AND u.dia_vencimiento <= $dia_actual) 
+                                        OR u.deuda > 0";  // Incluir usuarios con deuda manual
                 $resultado_deudores = ejecutarConsulta($sql_deudores, $conn);
         
                 if (isset($resultado_deudores[0])) {
