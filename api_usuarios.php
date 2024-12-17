@@ -153,10 +153,11 @@ switch ($action) {
                     COALESCE(u.telefono, 'No disponible') AS telefono, 
                     COALESCE(u.email, 'No disponible') AS email, 
                     COALESCE(u.plan, 'No especificado') AS plan, 
-                    d.id_deuda, d.monto, d.fecha_generacion, d.fecha_vencimiento, d.estado 
+                    u.deuda AS deuda_manual, 
+                    d.id_deuda, d.monto, d.fecha_generacion, d.fecha_vencimiento, d.estado
                     FROM usuarios u 
-                    INNER JOIN deudas d ON u.id_usuario = d.id_usuario 
-                    WHERE d.estado = 'pendiente' 
+                    LEFT JOIN deudas d ON u.id_usuario = d.id_usuario AND d.estado = 'pendiente'
+                    WHERE u.deuda > 0 OR d.id_deuda IS NOT NULL
                     ORDER BY u.id_usuario, d.fecha_generacion";
         
                 $deudores = ejecutarConsulta($sql_deudores, $conn);
@@ -182,21 +183,33 @@ switch ($action) {
                                 'deudas' => []
                             ];
                         }
-                        $response['deudores'][$id_usuario]['deudas'][] = [
-                            'id_deuda' => $deuda['id_deuda'],
-                            'monto' => $deuda['monto'],
-                            'fecha_generacion' => $deuda['fecha_generacion'],
-                            'fecha_vencimiento' => ajustarFechaVencimiento($deuda['fecha_vencimiento']),
-                            'estado' => $deuda['estado']
-                        ];
+                        // Agregar deuda manual (si existe)
+                        if ($deuda['deuda_manual'] > 0) {
+                            $response['deudores'][$id_usuario]['deudas'][] = [
+                                'id_deuda' => 'manual', // Identificador manual
+                                'monto' => $deuda['deuda_manual'],
+                                'fecha_generacion' => date('Y-m-d'), // Fecha actual
+                                'fecha_vencimiento' => null,
+                                'estado' => 'pendiente'
+                            ];
+                        }
+        
+                        // Agregar deudas pendientes de la tabla `deudas`
+                        if ($deuda['id_deuda'] !== null) {
+                            $response['deudores'][$id_usuario]['deudas'][] = [
+                                'id_deuda' => $deuda['id_deuda'],
+                                'monto' => $deuda['monto'],
+                                'fecha_generacion' => $deuda['fecha_generacion'],
+                                'fecha_vencimiento' => $deuda['fecha_vencimiento'],
+                                'estado' => $deuda['estado']
+                            ];
+                        }
                     }
                     // Convertir el array asociativo en un array indexado
                     $response['deudores'] = array_values($response['deudores']);
                 }
                 echo json_encode($response);
                 die();
-            } else {
-                error_log("Método HTTP incorrecto para la acción 'deudores'");
             }
         break;
         
