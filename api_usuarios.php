@@ -190,7 +190,7 @@ switch ($action) {
                                 'id_deuda' => 'manual', // Identificador manual
                                 'monto' => $deuda['deuda_manual'],
                                 'fecha_generacion' => date('Y-m-d'), // Fecha actual
-                                'fecha_vencimiento' => 'Deuda anterior', // No tiene vencimiento
+                                'fecha_vencimiento' => '--', // No tiene vencimiento
                                 'estado' => 'pendiente'
                             ];
                         }
