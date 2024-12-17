@@ -339,12 +339,12 @@ switch ($action) {
         }
         break;
 
-    case 'marcar_deuda_pagada':
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        case 'marcar_deuda_pagada':
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $data = json_decode(file_get_contents("php://input"), true);
                 $id_deuda = isset($data['id_deuda']) ? intval($data['id_deuda']) : null;
                 $id_usuario = isset($data['id_usuario']) ? intval($data['id_usuario']) : null;
-
+        
                 if ($id_usuario === null) {
                     $response['message'] = "ID de usuario no proporcionado";
                     error_log($response['message']);
