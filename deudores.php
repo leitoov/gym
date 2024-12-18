@@ -70,7 +70,6 @@ if (!isset($_SESSION['admin_id'])) {
             }
         }
 
-        /* Estilo para el empty state */
         .empty-state {
             text-align: center;
             padding: 40px;
@@ -84,22 +83,6 @@ if (!isset($_SESSION['admin_id'])) {
             font-size: 50px;
             margin-bottom: 20px;
             color: #adb5bd;
-        }
-
-        /* Estilo para la lista de deudas */
-        .debt-list {
-            margin-top: 10px;
-            border-radius: 10px;
-            padding: 15px;
-        }
-
-        .debt-item {
-            border-bottom: 1px solid #e0e0e0;
-            padding: 10px 0;
-        }
-
-        .debt-item:last-child {
-            border-bottom: none;
         }
     </style>
 </head>
@@ -133,49 +116,74 @@ if (!isset($_SESSION['admin_id'])) {
             success: function(response) {
                 if (response.status === 'success') {
                     let deudores = response.deudores;
-                    let deudoresContainer = '';
+                    let deudasAutomaticas = '';
+                    let deudasManuales = '';
 
                     if (deudores.length === 0) {
-                        // Mostrar un empty state si no hay deudores
-                        deudoresContainer = `
+                        // Empty state para ambas secciones
+                        deudasAutomaticas = `
                             <div class="empty-state">
                                 <i class="fas fa-smile-beam"></i>
-                                <h4>¡No hay deudores en este momento!</h4>
-                                <p>Todos los usuarios están al día con sus pagos. ¡Buen trabajo!</p>
-                            </div>
-                        `;
+                                <h4>¡No hay deudas automáticas en este momento!</h4>
+                            </div>`;
+                        deudasManuales = `
+                            <div class="empty-state">
+                                <i class="fas fa-smile-beam"></i>
+                                <h4>¡No hay deudas manuales en este momento!</h4>
+                            </div>`;
                     } else {
-                        // Mostrar la lista de deudores
+                        // Procesar deudas
                         deudores.forEach(function(deudor) {
-                            deudoresContainer += '<div class="user-card">';
-                            deudoresContainer += '<div class="user-info">';
-                            deudoresContainer += '<div class="user-details">';
-                            deudoresContainer += '<h5>' + deudor.nombre + ' ' + deudor.apellido + '</h5>';
-                            deudoresContainer += '<p><strong>Teléfono:</strong> ' + deudor.telefono + '</p>';
-                            deudoresContainer += '<p><strong>Correo Electrónico:</strong> ' + deudor.email + '</p>';
-                            deudoresContainer += '<p><strong>Plan:</strong> ' + deudor.plan + '</p>';
-
-                            // Mostrar las deudas del usuario
-                            deudoresContainer += '<div class="debt-list">';
                             deudor.deudas.forEach(function(deuda) {
-                                deudoresContainer += '<div class="debt-item">';
-                                deudoresContainer += '<p><strong>Monto:</strong> AR$ ' + deuda.monto + '</p>';
-                                deudoresContainer += '<p><strong>Fecha de Vencimiento:</strong> ' + deuda.fecha_generacion + '</p>';
-                                deudoresContainer += '<button onclick="marcarDeudaComoPagada(' + deuda.id_deuda + ')" class="btn btn-success btn-sm"><i class="fas fa-check"></i> Marcar como Pagada</button>';
-                                deudoresContainer += '</div>';
+                                if (deuda.id_deuda === 'manual') {
+                                    // Deudas Manuales
+                                    deudasManuales += `
+                                        <div class="user-card">
+                                            <div class="user-info">
+                                                <div class="user-details">
+                                                    <h5>${deudor.nombre} ${deudor.apellido}</h5>
+                                                    <p><strong>Teléfono:</strong> ${deudor.telefono}</p>
+                                                    <p><strong>Correo Electrónico:</strong> ${deudor.email}</p>
+                                                    <p><strong>Monto:</strong> AR$ ${deuda.monto}</p>
+                                                </div>
+                                                <div class="user-actions">
+                                                    <button onclick="marcarDeudaComoPagada('manual', ${deudor.id_usuario})" class="btn btn-success btn-sm">
+                                                        <i class="fas fa-check"></i> Marcar como Pagada
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>`;
+                                } else {
+                                    // Deudas Automáticas
+                                    deudasAutomaticas += `
+                                        <div class="user-card">
+                                            <div class="user-info">
+                                                <div class="user-details">
+                                                    <h5>${deudor.nombre} ${deudor.apellido}</h5>
+                                                    <p><strong>Teléfono:</strong> ${deudor.telefono}</p>
+                                                    <p><strong>Correo Electrónico:</strong> ${deudor.email}</p>
+                                                    <p><strong>Monto:</strong> AR$ ${deuda.monto}</p>
+                                                    <p><strong>Fecha de Vencimiento:</strong> ${deuda.fecha_vencimiento}</p>
+                                                </div>
+                                                <div class="user-actions">
+                                                    <button onclick="marcarDeudaComoPagada(${deuda.id_deuda})" class="btn btn-success btn-sm">
+                                                        <i class="fas fa-check"></i> Marcar como Pagada
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>`;
+                                }
                             });
-                            deudoresContainer += '</div>'; // Cerrar la lista de deudas
-
-                            deudoresContainer += '</div>'; // Cerrar los detalles del usuario
-                            deudoresContainer += '<div class="user-actions">';
-                            deudoresContainer += '<a href="historial.php?id_usuario=' + deudor.id_usuario + '" class="btn btn-info btn-custom"><i class="fas fa-history"></i> Ver Historial</a>';
-                            deudoresContainer += '</div>';
-                            deudoresContainer += '</div>'; // Cerrar la información del usuario
-                            deudoresContainer += '</div>'; // Cerrar la tarjeta del usuario
                         });
                     }
 
-                    $('#deudoresContainer').html(deudoresContainer);
+                    // Actualizar el contenedor
+                    $('#deudoresContainer').html(`
+                        <h3 class="text-center mt-4">Deudas Automáticas</h3>
+                        ${deudasAutomaticas}
+                        <h3 class="text-center mt-4">Deudas Manuales</h3>
+                        ${deudasManuales}
+                    `);
                 } else {
                     Swal.fire('Error', response.message, 'error');
                 }
@@ -187,10 +195,14 @@ if (!isset($_SESSION['admin_id'])) {
         });
     }
 
-    function marcarDeudaComoPagada(id_deuda) {
+    function marcarDeudaComoPagada(id_deuda, id_usuario = null) {
+        const isManual = id_deuda === 'manual';
+
         Swal.fire({
             title: '¿Estás seguro?',
-            text: "Esta acción marcará esta deuda específica como pagada.",
+            text: isManual
+                ? "Esta acción marcará la deuda manual como pagada."
+                : "Esta acción marcará esta deuda automática como pagada.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
@@ -202,7 +214,10 @@ if (!isset($_SESSION['admin_id'])) {
                     url: 'api_usuarios.php?action=marcar_deuda_pagada',
                     method: 'POST',
                     contentType: 'application/json',
-                    data: JSON.stringify({ id_deuda: id_deuda }),
+                    data: JSON.stringify({
+                        id_deuda: isManual ? null : id_deuda,
+                        id_usuario: isManual ? id_usuario : null
+                    }),
                     dataType: 'json',
                     success: function(response) {
                         if (response.status === 'success') {
