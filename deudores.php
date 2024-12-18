@@ -103,87 +103,55 @@ if (!isset($_SESSION['admin_id'])) {
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.26/dist/sweetalert2.all.min.js"></script>
 
 <script>
-    // Cargar usuarios con deudas en el contenedor
+    // Leer el tipo de deudas desde la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const tipo = urlParams.get('tipo') || 'todas'; // Por defecto, mostrar ambas
+
     $(document).ready(function() {
-        cargarDeudores();
+        cargarDeudores(tipo);
     });
 
-    function cargarDeudores() {
+    function cargarDeudores(tipo) {
         $.ajax({
-            url: 'api_usuarios.php?action=deudores',
+            url: `api_usuarios.php?action=deudores&tipo=${tipo}`,
             method: 'GET',
             dataType: 'json',
             success: function(response) {
                 if (response.status === 'success') {
                     let deudores = response.deudores;
-                    let deudasAutomaticas = '';
-                    let deudasManuales = '';
+                    let deudasHtml = '';
 
                     if (deudores.length === 0) {
-                        // Empty state para ambas secciones
-                        deudasAutomaticas = `
+                        deudasHtml = `
                             <div class="empty-state">
                                 <i class="fas fa-smile-beam"></i>
-                                <h4>¡No hay deudas automáticas en este momento!</h4>
-                            </div>`;
-                        deudasManuales = `
-                            <div class="empty-state">
-                                <i class="fas fa-smile-beam"></i>
-                                <h4>¡No hay deudas manuales en este momento!</h4>
+                                <h4>¡No hay deudas ${tipo === 'manuales' ? 'manuales' : tipo === 'automaticas' ? 'automáticas' : ''} en este momento!</h4>
                             </div>`;
                     } else {
-                        // Procesar deudas
                         deudores.forEach(function(deudor) {
                             deudor.deudas.forEach(function(deuda) {
-                                if (deuda.id_deuda === 'manual') {
-                                    // Deudas Manuales
-                                    deudasManuales += `
-                                        <div class="user-card">
-                                            <div class="user-info">
-                                                <div class="user-details">
-                                                    <h5>${deudor.nombre} ${deudor.apellido}</h5>
-                                                    <p><strong>Teléfono:</strong> ${deudor.telefono}</p>
-                                                    <p><strong>Correo Electrónico:</strong> ${deudor.email}</p>
-                                                    <p><strong>Monto:</strong> AR$ ${deuda.monto}</p>
-                                                </div>
-                                                <div class="user-actions">
-                                                    <button onclick="marcarDeudaComoPagada('manual', ${deudor.id_usuario})" class="btn btn-success btn-sm">
-                                                        <i class="fas fa-check"></i> Marcar como Pagada
-                                                    </button>
-                                                </div>
+                                deudasHtml += `
+                                    <div class="user-card">
+                                        <div class="user-info">
+                                            <div class="user-details">
+                                                <h5>${deudor.nombre} ${deudor.apellido}</h5>
+                                                <p><strong>Teléfono:</strong> ${deudor.telefono}</p>
+                                                <p><strong>Correo Electrónico:</strong> ${deudor.email}</p>
+                                                <p><strong>Monto:</strong> AR$ ${deuda.monto}</p>
+                                                <p><strong>Vencimiento:</strong> ${deuda.fecha_vencimiento === '--' ? 'Sin vencimiento' : deuda.fecha_vencimiento}</p>
                                             </div>
-                                        </div>`;
-                                } else {
-                                    // Deudas Automáticas
-                                    deudasAutomaticas += `
-                                        <div class="user-card">
-                                            <div class="user-info">
-                                                <div class="user-details">
-                                                    <h5>${deudor.nombre} ${deudor.apellido}</h5>
-                                                    <p><strong>Teléfono:</strong> ${deudor.telefono}</p>
-                                                    <p><strong>Correo Electrónico:</strong> ${deudor.email}</p>
-                                                    <p><strong>Monto:</strong> AR$ ${deuda.monto}</p>
-                                                    <p><strong>Fecha de Vencimiento:</strong> ${deuda.fecha_vencimiento}</p>
-                                                </div>
-                                                <div class="user-actions">
-                                                    <button onclick="marcarDeudaComoPagada(${deuda.id_deuda})" class="btn btn-success btn-sm">
-                                                        <i class="fas fa-check"></i> Marcar como Pagada
-                                                    </button>
-                                                </div>
+                                            <div class="user-actions">
+                                                <button onclick="marcarDeudaComoPagada(${deuda.id_deuda === 'manual' ? "'manual', " + deudor.id_usuario : deuda.id_deuda})" class="btn btn-success btn-sm">
+                                                    <i class="fas fa-check"></i> Marcar como Pagada
+                                                </button>
                                             </div>
-                                        </div>`;
-                                }
+                                        </div>
+                                    </div>`;
                             });
                         });
                     }
 
-                    // Actualizar el contenedor
-                    $('#deudoresContainer').html(`
-                        <h3 class="text-center mt-4">Deudas Automáticas</h3>
-                        ${deudasAutomaticas}
-                        <h3 class="text-center mt-4">Deudas Manuales</h3>
-                        ${deudasManuales}
-                    `);
+                    $('#deudoresContainer').html(deudasHtml);
                 } else {
                     Swal.fire('Error', response.message, 'error');
                 }
@@ -222,7 +190,7 @@ if (!isset($_SESSION['admin_id'])) {
                     success: function(response) {
                         if (response.status === 'success') {
                             Swal.fire('Éxito', 'La deuda ha sido marcada como pagada.', 'success').then(() => {
-                                cargarDeudores(); // Recargar la lista de deudores
+                                cargarDeudores(tipo); // Recargar la lista de deudores
                             });
                         } else {
                             Swal.fire('Error', response.message, 'error');

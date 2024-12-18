@@ -135,69 +135,34 @@ switch ($action) {
         }
         break;
 
-    case 'deudores':
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-                error_log("Ejecutando acción 'deudores'");
+        case 'deudores':
+            if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+                $tipo = isset($_GET['tipo']) ? $_GET['tipo'] : 'todas'; // Default: todas las deudas
         
-                // Consulta para usuarios con deudas manuales y cuotas vencidas
-                $sql_deudores = "SELECT u.id_usuario, u.nombre, u.apellido, 
+                $sql_base = "SELECT u.id_usuario, u.nombre, u.apellido, 
                                     COALESCE(u.telefono, 'No disponible') AS telefono, 
                                     COALESCE(u.email, 'No disponible') AS email, 
                                     u.deuda AS deuda_manual, 
                                     d.id_deuda, d.monto, d.fecha_generacion, d.fecha_vencimiento, d.estado
-                                 FROM usuarios u
-                                 LEFT JOIN deudas d ON u.id_usuario = d.id_usuario AND d.estado = 'pendiente'
-                                 WHERE u.deuda > 0 OR d.id_deuda IS NOT NULL
-                                 ORDER BY u.id_usuario, d.fecha_vencimiento";
+                             FROM usuarios u
+                             LEFT JOIN deudas d ON u.id_usuario = d.id_usuario AND d.estado = 'pendiente'";
+        
+                if ($tipo === 'manuales') {
+                    $sql_deudores = "$sql_base WHERE u.deuda > 0";
+                } elseif ($tipo === 'automaticas') {
+                    $sql_deudores = "$sql_base WHERE d.id_deuda IS NOT NULL";
+                } else {
+                    $sql_deudores = "$sql_base WHERE u.deuda > 0 OR d.id_deuda IS NOT NULL";
+                }
         
                 $deudores = ejecutarConsulta($sql_deudores, $conn);
         
-                if (isset($deudores['error'])) {
-                    $response['message'] = 'Error al obtener deudores: ' . $deudores['error'];
-                } else {
-                    $response = ['status' => 'success', 'deudores' => []];
-                    foreach ($deudores as $deuda) {
-                        $id_usuario = $deuda['id_usuario'];
-                        if (!isset($response['deudores'][$id_usuario])) {
-                            $response['deudores'][$id_usuario] = [
-                                'id_usuario' => $deuda['id_usuario'],
-                                'nombre' => $deuda['nombre'],
-                                'apellido' => $deuda['apellido'],
-                                'telefono' => $deuda['telefono'],
-                                'email' => $deuda['email'],
-                                'deudas' => []
-                            ];
-                        }
-        
-                        // Agregar deuda manual
-                        if ($deuda['deuda_manual'] > 0) {
-                            $response['deudores'][$id_usuario]['deudas'][] = [
-                                'id_deuda' => 'manual',
-                                'monto' => $deuda['deuda_manual'],
-                                'fecha_generacion' => '--',
-                                'fecha_vencimiento' => '--',
-                                'estado' => 'pendiente'
-                            ];
-                        }
-        
-                        // Agregar deuda automática
-                        if ($deuda['id_deuda'] !== null) {
-                            $response['deudores'][$id_usuario]['deudas'][] = [
-                                'id_deuda' => $deuda['id_deuda'],
-                                'monto' => $deuda['monto'],
-                                'fecha_generacion' => $deuda['fecha_generacion'],
-                                'fecha_vencimiento' => $deuda['fecha_vencimiento'],
-                                'estado' => $deuda['estado']
-                            ];
-                        }
-                    }
-                    echo json_encode($response);
-                    die();
-                }
-        }
-    break;
-        
-        
+                // Procesar la respuesta...
+                echo json_encode(['status' => 'success', 'deudores' => $deudores]);
+                die();
+            }
+        break;
+              
 
     case 'usuario':
         if ($id !== null && $_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -324,23 +289,20 @@ switch ($action) {
         }
         break;
 
-        case 'marcar_deuda_pagada':
-            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    case 'marcar_deuda_pagada':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $data = json_decode(file_get_contents("php://input"), true);
-                $id_deuda = isset($data['id_deuda']) ? intval($data['id_deuda']) : null;
+                $id_deuda = isset($data['id_deuda']) ? $data['id_deuda'] : null;
                 $id_usuario = isset($data['id_usuario']) ? intval($data['id_usuario']) : null;
         
                 if ($id_usuario === null) {
                     $response['message'] = "ID de usuario no proporcionado";
-                    error_log($response['message']);
                     echo json_encode($response);
                     die();
                 }
         
-                if ($id_deuda === null || $id_deuda <= 0) {
-                    // Caso: deuda manual (sin ID válido en `deudas`)
-                    error_log("Detectada deuda manual para el usuario ID: $id_usuario");
-        
+                if ($id_deuda === 'manual') {
+                    // Caso: deuda manual
                     $sql_actualizar_deuda_manual = "UPDATE usuarios SET deuda = 0 WHERE id_usuario = $id_usuario";
         
                     if ($conn->query($sql_actualizar_deuda_manual) === TRUE) {
@@ -353,9 +315,7 @@ switch ($action) {
                         error_log($response['message']);
                     }
                 } else {
-                    // Caso: deuda normal en la tabla `deudas`
-                    error_log("Detectada deuda normal con ID: $id_deuda");
-        
+                    // Caso: deuda automática
                     $fecha_pago = date('Y-m-d');
                     $sql_marcar_pagada = "UPDATE deudas 
                                           SET estado = 'pagada', fecha_pago = '$fecha_pago' 
@@ -364,21 +324,19 @@ switch ($action) {
                     if ($conn->query($sql_marcar_pagada) === TRUE) {
                         $response = [
                             'status' => 'success',
-                            'message' => 'Deuda marcada como pagada correctamente'
+                            'message' => 'Deuda automática marcada como pagada correctamente'
                         ];
                     } else {
-                        $response['message'] = 'Error al actualizar deuda específica: ' . $conn->error;
+                        $response['message'] = 'Error al actualizar deuda automática: ' . $conn->error;
                         error_log($response['message']);
                     }
                 }
         
                 echo json_encode($response);
                 die();
-            } else {
-                error_log("Método HTTP incorrecto para la acción 'marcar_deuda_pagada'");
-            }
-        break;
-        
+        }
+    break;
+         
 
     case 'total_deuda':
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {

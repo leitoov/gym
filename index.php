@@ -312,12 +312,12 @@
                     <span class="material-icons">warning</span>
                 </div>
                 <div class="stat-info">
-                    <h3>Pagos Pendientes</h3>
+                    <h3>Pagos Mensuales Pendientes</h3>
                     <div class="stat-number" id="totalDeudores">0</div>
-                    <p class="stat-description">Usuarios con pagos pendientes este mes</p>
-                    <a href="deudores.php" class="stat-action">
+                    <p class="stat-description">Usuarios con pagos pendientes por cuotas</p>
+                    <a href="deudores.php?tipo=automaticas" class="stat-action">
                         <span class="material-icons">attach_money</span>
-                        Ver Deudores
+                        Ver Deudas Mensuales
                     </a>
                 </div>
             </div>
@@ -330,7 +330,7 @@
                     <h3>Deudas Manuales</h3>
                     <div class="stat-number" id="totalDeudasManuales">0</div>
                     <p class="stat-description">Usuarios con deudas manuales registradas</p>
-                    <a href="deudores.php" class="stat-action">
+                    <a href="deudores.php?tipo=manuales" class="stat-action">
                         <span class="material-icons">visibility</span>
                         Ver Deudas Manuales
                     </a>
