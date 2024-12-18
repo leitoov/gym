@@ -338,14 +338,15 @@ switch ($action) {
                 $id_deuda = isset($data['id_deuda']) ? $data['id_deuda'] : null;
                 $id_usuario = isset($data['id_usuario']) ? intval($data['id_usuario']) : null;
         
+                // Validar que se haya proporcionado el ID del usuario
                 if ($id_usuario === null) {
                     $response['message'] = "ID de usuario no proporcionado";
                     echo json_encode($response);
                     die();
                 }
         
-                if ($id_deuda === 'manual') {
-                    // Caso: deuda manual (campo `deuda` en la tabla `usuarios`)
+                // Caso: Deuda Manual
+                if ($id_deuda === null || $id_deuda === 'manual') {
                     $sql_actualizar_deuda_manual = "UPDATE usuarios SET deuda = 0 WHERE id_usuario = $id_usuario";
         
                     if ($conn->query($sql_actualizar_deuda_manual) === TRUE) {
@@ -357,8 +358,9 @@ switch ($action) {
                         $response['message'] = 'Error al actualizar deuda manual: ' . $conn->error;
                         error_log($response['message']);
                     }
-                } elseif ($id_deuda !== null) {
-                    // Caso: deuda automática (tabla `deudas`)
+                } 
+                // Caso: Deuda Automática
+                elseif ($id_deuda !== null) {
                     $fecha_pago = date('Y-m-d');
                     $sql_marcar_pagada = "UPDATE deudas 
                                           SET estado = 'pagada', fecha_pago = '$fecha_pago' 
@@ -382,6 +384,7 @@ switch ($action) {
                 die();
             }
             break;
+        
         
          
 
