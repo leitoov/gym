@@ -317,7 +317,7 @@
                     <p class="stat-description">Usuarios con pagos pendientes por cuotas</p>
                     <a href="deudores.php?tipo=automaticas" class="stat-action">
                         <span class="material-icons">attach_money</span>
-                        Ver Deudas Mensuales
+                        Suscripcion mensual
                     </a>
                 </div>
             </div>
@@ -332,7 +332,7 @@
                     <p class="stat-description">Usuarios con deudas manuales registradas</p>
                     <a href="deudores.php?tipo=manuales" class="stat-action">
                         <span class="material-icons">visibility</span>
-                        Ver Deudas Manuales
+                        Otras deudas
                     </a>
                 </div>
             </div>
