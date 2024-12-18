@@ -324,6 +324,21 @@
 
             <div class="stat-card">
                 <div class="stat-icon">
+                    <span class="material-icons">attach_money</span>
+                </div>
+                <div class="stat-info">
+                    <h3>Deudas Manuales</h3>
+                    <div class="stat-number" id="totalDeudasManuales">0</div>
+                    <p class="stat-description">Usuarios con deudas manuales registradas</p>
+                    <a href="deudores.php" class="stat-action">
+                        <span class="material-icons">visibility</span>
+                        Ver Deudas Manuales
+                    </a>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
                     <span class="material-icons">notifications</span>
                 </div>
                 <div class="stat-info">
@@ -338,6 +353,7 @@
             </div>
         </div>
     </div>
+
 
     <script src="https://kit.fontawesome.com/your-font-awesome-kit.js"></script>
     <script>
@@ -359,16 +375,17 @@
             }, increment);
         }
 
-        // Fetch y animación de datos
-        fetch('api_usuarios.php?action=totales')
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    animateNumber(document.getElementById('totalUsuarios'), data.total_usuarios);
-                    animateNumber(document.getElementById('totalDeudores'), data.total_deudores);
-                }
-            })
-            .catch(error => console.error('Error:', error));
+    // Fetch y animación de datos
+    fetch('api_usuarios.php?action=totales')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                animateNumber(document.getElementById('totalUsuarios'), data.total_usuarios);
+                animateNumber(document.getElementById('totalDeudores'), data.deudas_cuotas);
+                animateNumber(document.getElementById('totalDeudasManuales'), data.deudas_manuales);
+            }
+        })
+    .catch(error => console.error('Error:', error));
     </script>
 </body>
 </html>

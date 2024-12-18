@@ -52,44 +52,48 @@ function ajustarDiaVencimiento($dia, $mes, $anio) {
 // Lógica de las acciones disponibles
 switch ($action) {
     case 'totales':
-            if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-                error_log("Ejecutando acción 'totales'");
-        
-                $response = [
-                    'status' => 'success',
-                    'total_usuarios' => 0,
-                    'total_deudores' => 0
-                ];
-        
-                // Obtener total de usuarios
-                $sql_usuarios = "SELECT COUNT(*) as total FROM usuarios";
-                $resultado_usuarios = ejecutarConsulta($sql_usuarios, $conn);
-        
-                if (isset($resultado_usuarios[0])) {
-                    $response['total_usuarios'] = $resultado_usuarios[0]['total'];
-                } else {
-                    error_log("Error al obtener el total de usuarios: " . json_encode($resultado_usuarios));
-                }
-        
-                // Obtener total de deudores (usuarios con deudas pendientes en base al día de vencimiento)
-                $dia_actual = date('j');
-                $sql_deudores = "SELECT COUNT(DISTINCT u.id_usuario) as total FROM usuarios u 
-                                LEFT JOIN deudas d ON u.id_usuario = d.id_usuario AND d.estado = 'pendiente'
-                                WHERE (d.estado = 'pendiente' AND u.dia_vencimiento <= $dia_actual) 
-                                        OR u.deuda > 0";  // Incluir usuarios con deuda manual
-                $resultado_deudores = ejecutarConsulta($sql_deudores, $conn);
-        
-                if (isset($resultado_deudores[0])) {
-                    $response['total_deudores'] = $resultado_deudores[0]['total'];
-                } else {
-                    error_log("Error al obtener el total de deudores: " . json_encode($resultado_deudores));
-                }
-        
-                echo json_encode($response);
-                die();
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            error_log("Ejecutando acción 'totales'");
+    
+            $response = [
+                'status' => 'success',
+                'total_usuarios' => 0,
+                'deudas_manuales' => 0,
+                'deudas_cuotas' => 0
+            ];
+    
+            // Total de usuarios
+            $sql_usuarios = "SELECT COUNT(*) as total FROM usuarios";
+            $resultado_usuarios = ejecutarConsulta($sql_usuarios, $conn);
+            if (isset($resultado_usuarios[0])) {
+                $response['total_usuarios'] = $resultado_usuarios[0]['total'];
             } else {
-                error_log("Método HTTP incorrecto para la acción 'totales'");
+                error_log("Error al obtener el total de usuarios: " . json_encode($resultado_usuarios));
             }
+    
+            // Total de usuarios con deudas manuales
+            $sql_deudas_manuales = "SELECT COUNT(*) as total FROM usuarios WHERE deuda > 0";
+            $resultado_manuales = ejecutarConsulta($sql_deudas_manuales, $conn);
+            if (isset($resultado_manuales[0])) {
+                $response['deudas_manuales'] = $resultado_manuales[0]['total'];
+            } else {
+                error_log("Error al obtener el total de deudas manuales: " . json_encode($resultado_manuales));
+            }
+    
+            // Total de usuarios con deudas de cuotas vencidas
+            $sql_deudas_cuotas = "SELECT COUNT(DISTINCT d.id_usuario) as total 
+                                  FROM deudas d 
+                                  WHERE d.estado = 'pendiente'";
+            $resultado_cuotas = ejecutarConsulta($sql_deudas_cuotas, $conn);
+            if (isset($resultado_cuotas[0])) {
+                $response['deudas_cuotas'] = $resultado_cuotas[0]['total'];
+            } else {
+                error_log("Error al obtener el total de deudas de cuotas: " . json_encode($resultado_cuotas));
+            }
+    
+            echo json_encode($response);
+            die();
+        }
     break;
     case 'usuarios':
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -135,28 +139,16 @@ switch ($action) {
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 error_log("Ejecutando acción 'deudores'");
         
-                // Función para ajustar la fecha de vencimiento
-                function ajustarFechaVencimiento($fecha_vencimiento) {
-                    $timestamp = strtotime($fecha_vencimiento);
-                    $dia_vencimiento = date('j', $timestamp);
-                    $mes = date('n', $timestamp);
-                    $anio = date('Y', $timestamp);
-        
-                    $ultimo_dia_mes = date('t', strtotime("$anio-$mes-01"));
-                    return ($dia_vencimiento > $ultimo_dia_mes) ? "$anio-$mes-$ultimo_dia_mes" : $fecha_vencimiento;
-                }
-        
-                // Consulta para obtener usuarios con deudas pendientes y manuales
+                // Consulta para usuarios con deudas manuales y cuotas vencidas
                 $sql_deudores = "SELECT u.id_usuario, u.nombre, u.apellido, 
                                     COALESCE(u.telefono, 'No disponible') AS telefono, 
                                     COALESCE(u.email, 'No disponible') AS email, 
-                                    COALESCE(u.plan, 'No especificado') AS plan, 
                                     u.deuda AS deuda_manual, 
                                     d.id_deuda, d.monto, d.fecha_generacion, d.fecha_vencimiento, d.estado
-                                 FROM usuarios u 
+                                 FROM usuarios u
                                  LEFT JOIN deudas d ON u.id_usuario = d.id_usuario AND d.estado = 'pendiente'
                                  WHERE u.deuda > 0 OR d.id_deuda IS NOT NULL
-                                 ORDER BY u.id_usuario, d.fecha_generacion";
+                                 ORDER BY u.id_usuario, d.fecha_vencimiento";
         
                 $deudores = ejecutarConsulta($sql_deudores, $conn);
         
@@ -164,10 +156,8 @@ switch ($action) {
                     $response['message'] = 'Error al obtener deudores: ' . $deudores['error'];
                 } else {
                     $response = ['status' => 'success', 'deudores' => []];
-        
                     foreach ($deudores as $deuda) {
                         $id_usuario = $deuda['id_usuario'];
-        
                         if (!isset($response['deudores'][$id_usuario])) {
                             $response['deudores'][$id_usuario] = [
                                 'id_usuario' => $deuda['id_usuario'],
@@ -175,40 +165,35 @@ switch ($action) {
                                 'apellido' => $deuda['apellido'],
                                 'telefono' => $deuda['telefono'],
                                 'email' => $deuda['email'],
-                                'plan' => $deuda['plan'],
                                 'deudas' => []
                             ];
                         }
         
-                        // Agregar deuda manual (si existe)
+                        // Agregar deuda manual
                         if ($deuda['deuda_manual'] > 0) {
                             $response['deudores'][$id_usuario]['deudas'][] = [
-                                'id_deuda' => 'manual', // Identificador único para deuda manual
+                                'id_deuda' => 'manual',
                                 'monto' => $deuda['deuda_manual'],
-                                'fecha_generacion' => '--', // Sin fecha de generación
-                                'fecha_vencimiento' => '--', // Sin fecha de vencimiento
+                                'fecha_generacion' => '--',
+                                'fecha_vencimiento' => '--',
                                 'estado' => 'pendiente'
                             ];
                         }
         
-                        // Agregar deudas pendientes de la tabla `deudas`
+                        // Agregar deuda automática
                         if ($deuda['id_deuda'] !== null) {
                             $response['deudores'][$id_usuario]['deudas'][] = [
                                 'id_deuda' => $deuda['id_deuda'],
                                 'monto' => $deuda['monto'],
                                 'fecha_generacion' => $deuda['fecha_generacion'],
-                                'fecha_vencimiento' => ajustarFechaVencimiento($deuda['fecha_vencimiento']),
+                                'fecha_vencimiento' => $deuda['fecha_vencimiento'],
                                 'estado' => $deuda['estado']
                             ];
                         }
                     }
-        
-                    // Convertir el array asociativo en un array indexado
-                    $response['deudores'] = array_values($response['deudores']);
+                    echo json_encode($response);
+                    die();
                 }
-        
-                echo json_encode($response);
-                die();
         }
     break;
         
