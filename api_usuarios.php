@@ -134,10 +134,9 @@ switch ($action) {
                 error_log("Método HTTP incorrecto para la acción 'usuarios'");
         }
         break;
-
         case 'deudores':
             if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-                $tipo = isset($_GET['tipo']) ? $_GET['tipo'] : 'todas'; // Default: todas las deudas
+                $tipo = isset($_GET['tipo']) ? $_GET['tipo'] : 'todas';
         
                 $sql_base = "SELECT u.id_usuario, u.nombre, u.apellido, 
                                     COALESCE(u.telefono, 'No disponible') AS telefono, 
@@ -155,14 +154,58 @@ switch ($action) {
                     $sql_deudores = "$sql_base WHERE u.deuda > 0 OR d.id_deuda IS NOT NULL";
                 }
         
-                $deudores = ejecutarConsulta($sql_deudores, $conn);
+                $result = ejecutarConsulta($sql_deudores, $conn);
         
-                // Procesar la respuesta...
-                echo json_encode(['status' => 'success', 'deudores' => $deudores]);
+                if (isset($result['error'])) {
+                    echo json_encode(['status' => 'error', 'message' => $result['error']]);
+                    die();
+                }
+        
+                $response = ['status' => 'success', 'deudores' => []];
+                $usuarios = [];
+        
+                foreach ($result as $row) {
+                    $id_usuario = $row['id_usuario'];
+                    if (!isset($usuarios[$id_usuario])) {
+                        $usuarios[$id_usuario] = [
+                            'id_usuario' => $id_usuario,
+                            'nombre' => $row['nombre'],
+                            'apellido' => $row['apellido'],
+                            'telefono' => $row['telefono'],
+                            'email' => $row['email'],
+                            'deudas' => [] // Siempre inicializa como un array vacío
+                        ];
+                    }
+        
+                    // Agregar deuda si existe
+                    if ($row['id_deuda'] !== null) {
+                        $usuarios[$id_usuario]['deudas'][] = [
+                            'id_deuda' => $row['id_deuda'],
+                            'monto' => $row['monto'],
+                            'fecha_generacion' => $row['fecha_generacion'],
+                            'fecha_vencimiento' => $row['fecha_vencimiento'],
+                            'estado' => $row['estado']
+                        ];
+                    }
+        
+                    // Agregar deuda manual como deuda especial
+                    if ($row['deuda_manual'] > 0 && empty($usuarios[$id_usuario]['deudas'])) {
+                        $usuarios[$id_usuario]['deudas'][] = [
+                            'id_deuda' => 'manual',
+                            'monto' => $row['deuda_manual'],
+                            'fecha_generacion' => '--',
+                            'fecha_vencimiento' => '--',
+                            'estado' => 'pendiente'
+                        ];
+                    }
+                }
+        
+                $response['deudores'] = array_values($usuarios);
+                echo json_encode($response);
                 die();
             }
-        break;
-              
+            break;
+                   
 
     case 'usuario':
         if ($id !== null && $_SERVER['REQUEST_METHOD'] === 'GET') {
