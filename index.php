@@ -312,7 +312,7 @@
                     <span class="material-icons">warning</span>
                 </div>
                 <div class="stat-info">
-                    <h3>Pagos Mensuales Pendientes</h3>
+                    <h3>Pagos Mensuales</h3>
                     <div class="stat-number" id="totalDeudores">0</div>
                     <p class="stat-description">Usuarios con pagos pendientes por cuotas</p>
                     <a href="deudores.php?tipo=automaticas" class="stat-action">
