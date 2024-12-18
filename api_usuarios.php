@@ -332,8 +332,8 @@ switch ($action) {
         }
         break;
 
-    case 'marcar_deuda_pagada':
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        case 'marcar_deuda_pagada':
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $data = json_decode(file_get_contents("php://input"), true);
                 $id_deuda = isset($data['id_deuda']) ? $data['id_deuda'] : null;
                 $id_usuario = isset($data['id_usuario']) ? intval($data['id_usuario']) : null;
@@ -345,7 +345,7 @@ switch ($action) {
                 }
         
                 if ($id_deuda === 'manual') {
-                    // Caso: deuda manual
+                    // Caso: deuda manual (campo `deuda` en la tabla `usuarios`)
                     $sql_actualizar_deuda_manual = "UPDATE usuarios SET deuda = 0 WHERE id_usuario = $id_usuario";
         
                     if ($conn->query($sql_actualizar_deuda_manual) === TRUE) {
@@ -357,8 +357,8 @@ switch ($action) {
                         $response['message'] = 'Error al actualizar deuda manual: ' . $conn->error;
                         error_log($response['message']);
                     }
-                } else {
-                    // Caso: deuda automática
+                } elseif ($id_deuda !== null) {
+                    // Caso: deuda automática (tabla `deudas`)
                     $fecha_pago = date('Y-m-d');
                     $sql_marcar_pagada = "UPDATE deudas 
                                           SET estado = 'pagada', fecha_pago = '$fecha_pago' 
@@ -373,12 +373,16 @@ switch ($action) {
                         $response['message'] = 'Error al actualizar deuda automática: ' . $conn->error;
                         error_log($response['message']);
                     }
+                } else {
+                    $response['message'] = "ID de deuda no proporcionado o inválido";
+                    error_log($response['message']);
                 }
         
                 echo json_encode($response);
                 die();
-        }
-    break;
+            }
+            break;
+        
          
 
     case 'total_deuda':
