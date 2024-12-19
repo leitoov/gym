@@ -294,6 +294,8 @@ if (!isset($_SESSION['admin_id'])) {
             <!-- Contenedor de la deuda total -->
             <div id="deudaTotalContainer" class="total-deuda-container">
                 <h4>Total Deuda Pendiente: AR$ <span id="deudaTotal">0.00</span></h4>
+                <p>Cuotas Pendientes: AR$ <span id="deudaCuotas">0.00</span></p>
+                <p>Deudas Manuales: AR$ <span id="deudaManuales">0.00</span></p>
             </div>
             <div class="input-group mb-4">
                 <input type="text" class="form-control" id="buscarInput" placeholder="Buscar por nombre, correo o teléfono...">
@@ -596,7 +598,12 @@ if (!isset($_SESSION['admin_id'])) {
                     success: function(response) {
                         if (response.status === 'success') {
                             let deudaTotal = parseFloat(response.deuda_total);
+                            let deudaCuotas = parseFloat(response.deuda_cuotas);
+                            let deudaManuales = parseFloat(response.deuda_manuales);
+
                             $('#deudaTotal').text(deudaTotal.toFixed(2));
+                            $('#deudaCuotas').text(deudaCuotas.toFixed(2));
+                            $('#deudaManuales').text(deudaManuales.toFixed(2));
                         } else {
                             Swal.fire('Error', response.message, 'error');
                         }
@@ -606,6 +613,7 @@ if (!isset($_SESSION['admin_id'])) {
                     }
                 });
             }
+
 
             // Abrir el modal de edición de usuario
             function abrirModalEdicion(id_usuario) {

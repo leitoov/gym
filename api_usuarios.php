@@ -133,8 +133,8 @@ switch ($action) {
         } else {
                 error_log("Método HTTP incorrecto para la acción 'usuarios'");
         }
-        break;
-        case 'deudores':
+    break;
+    case 'deudores':
             if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 $tipo = isset($_GET['tipo']) ? $_GET['tipo'] : 'todas';
         
@@ -204,8 +204,7 @@ switch ($action) {
                 echo json_encode($response);
                 die();
             }
-            break;
-                   
+    break;              
 
     case 'usuario':
         if ($id !== null && $_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -230,7 +229,7 @@ switch ($action) {
         } else {
             error_log("ID no proporcionado o método HTTP incorrecto para la acción 'usuario'");
         }
-        break;        
+    break;        
 
     case 'anadir':
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -285,9 +284,7 @@ switch ($action) {
                 echo json_encode($response);
                 die();
             }
-        break;
-        
-        
+        break;    
         
     case 'actualizar':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -332,8 +329,8 @@ switch ($action) {
         }
         break;
 
-        case 'marcar_deuda_pagada':
-            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    case 'marcar_deuda_pagada':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $data = json_decode(file_get_contents("php://input"), true);
                 $id_deuda = isset($data['id_deuda']) ? $data['id_deuda'] : null;
                 $id_usuario = isset($data['id_usuario']) ? intval($data['id_usuario']) : null;
@@ -382,8 +379,8 @@ switch ($action) {
         
                 echo json_encode($response);
                 die();
-            }
-            break;
+        }
+    break;
         
         
          
@@ -391,28 +388,44 @@ switch ($action) {
     case 'total_deuda':
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             error_log("Ejecutando acción 'total_deuda'");
-            // Obtener la deuda total de todos los usuarios con deudas pendientes considerando el día de vencimiento
             $dia_actual = date('j');
-            $sql_total_deuda = "SELECT SUM(d.monto) AS deuda_total FROM deudas d
-                                INNER JOIN usuarios u ON u.id_usuario = d.id_usuario
-                                WHERE d.estado = 'pendiente' AND u.dia_vencimiento <= $dia_actual";
-            $resultado_total_deuda = ejecutarConsulta($sql_total_deuda, $conn);
-
-            if (isset($resultado_total_deuda['error'])) {
-                $response['message'] = 'Error al obtener la deuda total: ' . $resultado_total_deuda['error'];
-            } else {
-                $response = [
-                    'status' => 'success',
-                    'deuda_total' => $resultado_total_deuda[0]['deuda_total'] !== null ? $resultado_total_deuda[0]['deuda_total'] : 0
-                ];
+    
+            // Consulta para sumar deudas automáticas (cuotas pendientes)
+            $sql_cuotas_pendientes = "SELECT SUM(d.monto) AS deuda_cuotas 
+                                      FROM deudas d
+                                      INNER JOIN usuarios u ON u.id_usuario = d.id_usuario
+                                      WHERE d.estado = 'pendiente'";
+    
+            // Consulta para sumar deudas manuales
+            $sql_deudas_manuales = "SELECT SUM(deuda) AS deuda_manuales FROM usuarios WHERE deuda > 0";
+    
+            $deuda_cuotas = ejecutarConsulta($sql_cuotas_pendientes, $conn);
+            $deuda_manuales = ejecutarConsulta($sql_deudas_manuales, $conn);
+    
+            // Manejar posibles errores en las consultas
+            if (isset($deuda_cuotas['error']) || isset($deuda_manuales['error'])) {
+                $response['message'] = 'Error al calcular la deuda total';
+                echo json_encode($response);
+                die();
             }
+    
+            // Sumar ambas deudas
+            $total_cuotas = floatval($deuda_cuotas[0]['deuda_cuotas'] ?? 0);
+            $total_manuales = floatval($deuda_manuales[0]['deuda_manuales'] ?? 0);
+            $total_deuda = $total_cuotas + $total_manuales;
+    
+            $response = [
+                'status' => 'success',
+                'deuda_total' => $total_deuda,
+                'deuda_cuotas' => $total_cuotas,
+                'deuda_manuales' => $total_manuales
+            ];
+    
             echo json_encode($response);
             die();
-        } else {
-            error_log("Método HTTP incorrecto para la acción 'total_deuda'");
         }
-        break;
-
+    break;
+    
     case 'buscar':
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 $termino = isset($_GET['termino']) ? trim($_GET['termino']) : '';
