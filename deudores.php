@@ -164,46 +164,47 @@ if (!isset($_SESSION['admin_id'])) {
     }
 
     function marcarDeudaComoPagada(id_deuda, id_usuario = null) {
-        const isManual = id_deuda === 'manual';
+    const isManual = id_deuda === 'manual';
 
-        Swal.fire({
-            title: '¿Estás seguro?',
-            text: isManual
-                ? "Esta acción marcará la deuda manual como pagada."
-                : "Esta acción marcará esta deuda automática como pagada.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Sí, marcar como pagada'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: 'api_usuarios.php?action=marcar_deuda_pagada',
-                    method: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({
-                        id_deuda: isManual ? null : id_deuda,
-                        id_usuario: isManual ? id_usuario : null
-                    }),
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.status === 'success') {
-                            Swal.fire('Éxito', 'La deuda ha sido marcada como pagada.', 'success').then(() => {
-                                cargarDeudores(tipo); // Recargar la lista de deudores
-                            });
-                        } else {
-                            Swal.fire('Error', response.message, 'error');
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error en la solicitud AJAX:', status, error);
-                        Swal.fire('Error', 'Hubo un problema al marcar la deuda como pagada.', 'error');
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: isManual
+            ? "Esta acción marcará la deuda manual como pagada."
+            : "Esta acción marcará esta deuda automática como pagada.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, marcar como pagada'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: 'api_usuarios.php?action=marcar_deuda_pagada',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    id_deuda: isManual ? null : id_deuda,
+                    id_usuario: id_usuario // Siempre incluir id_usuario
+                }),
+                dataType: 'json',
+                success: function(response) {
+                    if (response.status === 'success') {
+                        Swal.fire('Éxito', 'La deuda ha sido marcada como pagada.', 'success').then(() => {
+                            cargarDeudores(tipo); // Recargar la lista de deudores
+                        });
+                    } else {
+                        Swal.fire('Error', response.message, 'error');
                     }
-                });
-            }
-        });
-    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error en la solicitud AJAX:', status, error);
+                    Swal.fire('Error', 'Hubo un problema al marcar la deuda como pagada.', 'error');
+                }
+            });
+        }
+    });
+}
+
 </script>
 </body>
 </html>
