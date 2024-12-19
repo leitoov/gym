@@ -359,7 +359,8 @@ if (!isset($_SESSION['admin_id'])) {
                                     </div>
                                     <div class="form-group">
                                         <label for="anadirFoto">Foto</label>
-                                        <input type="file" class="form-control-file" id="anadirFoto" name="foto" accept="image/*">
+                                        <input type="file" class="form-control-file" id="anadirFoto" name="foto" accept="image/*" capture="camera">
+
                                     </div>
                                 </div>
                             </div>
@@ -675,6 +676,12 @@ if (!isset($_SESSION['admin_id'])) {
                                             </div>
                                         `;
                                 }
+                                document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('anadirFoto');
+    if (!('capture' in document.createElement('input'))) {
+        alert('Tu navegador no admite la captura directa desde la cámara. Por favor, selecciona una foto de tu galería.');
+    }
+});
             });
 
         </script>
