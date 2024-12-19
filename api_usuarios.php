@@ -101,9 +101,10 @@ switch ($action) {
     
             // Obtener usuarios con sus datos
             $sql_usuarios = "SELECT u.*, 
-                                (SELECT MAX(mes_pagado) FROM historial_pagos WHERE id_usuario = u.id_usuario) AS ultimo_pago,
-                                (SELECT MAX(fecha_vencimiento) FROM deudas WHERE id_usuario = u.id_usuario AND estado = 'pendiente') AS ultimo_vencimiento
-                             FROM usuarios u";
+                                p.precio AS monto_cuota,
+                                (SELECT MAX(mes_pagado) FROM historial_pagos WHERE id_usuario = u.id_usuario) AS ultimo_pago
+                             FROM usuarios u
+                             INNER JOIN planes p ON u.plan = p.nombre";
                              
             $usuarios = ejecutarConsulta($sql_usuarios, $conn);
             if (isset($usuarios['error'])) {
@@ -119,22 +120,23 @@ switch ($action) {
                 $fecha_actual = date('Y-m-d');
                 $mes_actual = date('Y-m');
     
-                // Generar cuotas mensuales desde el último pago o registro
-                $fecha_cuota = date('Y-m', strtotime($ultimo_pago));
-                while ($fecha_cuota < $mes_actual) {
-                    $fecha_cuota_vencimiento = date('Y-m-d', strtotime("$fecha_cuota-{$usuario['dia_vencimiento']}"));
+                // Generar cuotas desde el último pago o registro hasta el mes actual
+                $mes_vencimiento = date('Y-m', strtotime($ultimo_pago));
+                while ($mes_vencimiento < $mes_actual) {
+                    $fecha_vencimiento = date('Y-m-d', strtotime("$mes_vencimiento-{$usuario['dia_vencimiento']}"));
     
                     // Insertar deuda si no existe
                     $sql_verificar = "SELECT COUNT(*) AS existe 
                                       FROM deudas 
                                       WHERE id_usuario = $id_usuario 
-                                      AND fecha_vencimiento = '$fecha_cuota_vencimiento'";
+                                      AND fecha_vencimiento = '$fecha_vencimiento'";
                     $existe = ejecutarConsulta($sql_verificar, $conn)[0]['existe'];
     
                     if (!$existe) {
-                        $monto_cuota = 1500; // Ajusta según el plan del usuario
+                        $monto_cuota = $usuario['monto_cuota'];
+                        // Insertar deuda mensual
                         $sql_insertar = "INSERT INTO deudas (id_usuario, monto, fecha_generacion, fecha_vencimiento, estado) 
-                                         VALUES ($id_usuario, $monto_cuota, '$fecha_actual', '$fecha_cuota_vencimiento', 'pendiente')";
+                                         VALUES ($id_usuario, $monto_cuota, '$fecha_actual', '$fecha_vencimiento', 'pendiente')";
                         $conn->query($sql_insertar);
                     }
     
@@ -145,7 +147,7 @@ switch ($action) {
             echo json_encode(['status' => 'success', 'usuarios' => $usuarios]);
             die();
         }
-        break;
+    break;
     case 'deudores':
             if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 $tipo = isset($_GET['tipo']) ? $_GET['tipo'] : 'todas';
@@ -399,44 +401,24 @@ switch ($action) {
 
     case 'total_deuda':
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            error_log("Ejecutando acción 'total_deuda'");
-            $dia_actual = date('j');
+            $sql_total_deudas_mensuales = "SELECT SUM(monto) AS total_mensual FROM deudas WHERE estado = 'pendiente'";
+            $total_mensual = ejecutarConsulta($sql_total_deudas_mensuales, $conn);
     
-            // Consulta para sumar deudas automáticas (cuotas pendientes)
-            $sql_cuotas_pendientes = "SELECT SUM(d.monto) AS deuda_cuotas 
-                                      FROM deudas d
-                                      INNER JOIN usuarios u ON u.id_usuario = d.id_usuario
-                                      WHERE d.estado = 'pendiente'";
+            $sql_total_deudas_manuales = "SELECT SUM(deuda) AS total_manual FROM usuarios WHERE deuda > 0";
+            $total_manual = ejecutarConsulta($sql_total_deudas_manuales, $conn);
     
-            // Consulta para sumar deudas manuales
-            $sql_deudas_manuales = "SELECT SUM(deuda) AS deuda_manuales FROM usuarios WHERE deuda > 0";
+            $total_mensual = $total_mensual[0]['total_mensual'] ?? 0;
+            $total_manual = $total_manual[0]['total_manual'] ?? 0;
     
-            $deuda_cuotas = ejecutarConsulta($sql_cuotas_pendientes, $conn);
-            $deuda_manuales = ejecutarConsulta($sql_deudas_manuales, $conn);
-    
-            // Manejar posibles errores en las consultas
-            if (isset($deuda_cuotas['error']) || isset($deuda_manuales['error'])) {
-                $response['message'] = 'Error al calcular la deuda total';
-                echo json_encode($response);
-                die();
-            }
-    
-            // Sumar ambas deudas
-            $total_cuotas = floatval($deuda_cuotas[0]['deuda_cuotas'] ?? 0);
-            $total_manuales = floatval($deuda_manuales[0]['deuda_manuales'] ?? 0);
-            $total_deuda = $total_cuotas + $total_manuales;
-    
-            $response = [
+            echo json_encode([
                 'status' => 'success',
-                'deuda_total' => $total_deuda,
-                'deuda_cuotas' => $total_cuotas,
-                'deuda_manuales' => $total_manuales
-            ];
-    
-            echo json_encode($response);
+                'deuda_total' => $total_mensual + $total_manual,
+                'deuda_mensual' => $total_mensual,
+                'deuda_manual' => $total_manual,
+            ]);
             die();
         }
-    break;
+        break;
     
     case 'buscar':
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
