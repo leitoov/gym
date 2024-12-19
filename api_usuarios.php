@@ -44,10 +44,54 @@ function ejecutarConsulta($sql, $conn) {
     }
     return $data;
 }
-function ajustarDiaVencimiento($dia, $mes, $anio) {
-    // Calcular el último día válido del mes
-    $ultimo_dia = cal_days_in_month(CAL_GREGORIAN, $mes, $anio);
-    return min($dia, $ultimo_dia); // Retorna el día ajustado si excede el último día del mes
+
+// Generar deudas automáticas
+function generarDeudasAutomaticas($conn) {
+    // Obtener usuarios con planes y deudas
+    $sql_usuarios = "SELECT u.id_usuario, u.fecha_registro, u.dia_vencimiento, p.precio AS monto_cuota
+                     FROM usuarios u
+                     INNER JOIN planes p ON u.plan = p.nombre";
+    $usuarios = ejecutarConsulta($sql_usuarios, $conn);
+    if (isset($usuarios['error'])) {
+        error_log("Error al obtener usuarios: " . $usuarios['error']);
+        return;
+    }
+
+    $fecha_actual = date('Y-m-d');
+    $mes_actual = date('Y-m');
+
+    foreach ($usuarios as $usuario) {
+        $id_usuario = $usuario['id_usuario'];
+        $fecha_registro = $usuario['fecha_registro'];
+        $dia_vencimiento = $usuario['dia_vencimiento'];
+        $monto_cuota = $usuario['monto_cuota'];
+
+        // Calcular el primer mes de vencimiento (mes siguiente al registro)
+        $mes_inicio = date('Y-m', strtotime("$fecha_registro +1 month"));
+        $mes_vencimiento = $mes_inicio;
+
+        // Generar deudas hasta el mes actual
+        while ($mes_vencimiento <= $mes_actual) {
+            $fecha_vencimiento = date('Y-m-d', strtotime("$mes_vencimiento-$dia_vencimiento"));
+
+            // Verificar si ya existe una deuda para esta fecha
+            $sql_verificar = "SELECT COUNT(*) AS existe 
+                              FROM deudas 
+                              WHERE id_usuario = $id_usuario 
+                              AND fecha_vencimiento = '$fecha_vencimiento'";
+            $existe = ejecutarConsulta($sql_verificar, $conn)[0]['existe'];
+
+            if (!$existe) {
+                // Insertar la deuda
+                $sql_insertar = "INSERT INTO deudas (id_usuario, monto, fecha_generacion, fecha_vencimiento, estado) 
+                                 VALUES ($id_usuario, $monto_cuota, '$fecha_actual', '$fecha_vencimiento', 'pendiente')";
+                $conn->query($sql_insertar);
+            }
+
+            // Avanzar al siguiente mes
+            $mes_vencimiento = date('Y-m', strtotime("$mes_vencimiento +1 month"));
+        }
+    }
 }
 // Lógica de las acciones disponibles
 switch ($action) {
@@ -97,128 +141,39 @@ switch ($action) {
     break;
     case 'usuarios':
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            error_log("Ejecutando acción 'usuarios'");
-    
-            // Obtener usuarios con sus datos
-            $sql_usuarios = "SELECT u.*, 
-                                p.precio AS monto_cuota,
-                                (SELECT MAX(mes_pagado) FROM historial_pagos WHERE id_usuario = u.id_usuario) AS ultimo_pago
+            generarDeudasAutomaticas($conn);
+
+            $sql_usuarios = "SELECT u.*, p.precio AS monto_cuota
                              FROM usuarios u
                              INNER JOIN planes p ON u.plan = p.nombre";
-                             
             $usuarios = ejecutarConsulta($sql_usuarios, $conn);
             if (isset($usuarios['error'])) {
                 $response['message'] = 'Error al obtener usuarios: ' . $usuarios['error'];
                 echo json_encode($response);
                 die();
             }
-    
-            // Generar deudas pendientes
-            foreach ($usuarios as $usuario) {
-                $id_usuario = $usuario['id_usuario'];
-                $ultimo_pago = $usuario['ultimo_pago'] ?? $usuario['fecha_registro'];
-                $fecha_actual = date('Y-m-d');
-                $mes_actual = date('Y-m');
-    
-                // Generar cuotas desde el último pago o registro hasta el mes actual
-                $mes_vencimiento = date('Y-m', strtotime($ultimo_pago));
-                while ($mes_vencimiento < $mes_actual) {
-                    $fecha_vencimiento = date('Y-m-d', strtotime("$mes_vencimiento-{$usuario['dia_vencimiento']}"));
-    
-                    // Insertar deuda si no existe
-                    $sql_verificar = "SELECT COUNT(*) AS existe 
-                                      FROM deudas 
-                                      WHERE id_usuario = $id_usuario 
-                                      AND fecha_vencimiento = '$fecha_vencimiento'";
-                    $existe = ejecutarConsulta($sql_verificar, $conn)[0]['existe'];
-    
-                    if (!$existe) {
-                        $monto_cuota = $usuario['monto_cuota'];
-                        // Insertar deuda mensual
-                        $sql_insertar = "INSERT INTO deudas (id_usuario, monto, fecha_generacion, fecha_vencimiento, estado) 
-                                         VALUES ($id_usuario, $monto_cuota, '$fecha_actual', '$fecha_vencimiento', 'pendiente')";
-                        $conn->query($sql_insertar);
-                    }
-    
-                    $fecha_cuota = date('Y-m', strtotime("$fecha_cuota +1 month"));
-                }
-            }
-    
+
             echo json_encode(['status' => 'success', 'usuarios' => $usuarios]);
             die();
         }
-    break;
-    case 'deudores':
+        break;
+        case 'deudores':
             if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-                $tipo = isset($_GET['tipo']) ? $_GET['tipo'] : 'todas';
-        
-                $sql_base = "SELECT u.id_usuario, u.nombre, u.apellido, 
-                                    COALESCE(u.telefono, 'No disponible') AS telefono, 
-                                    COALESCE(u.email, 'No disponible') AS email, 
-                                    u.deuda AS deuda_manual, 
-                                    d.id_deuda, d.monto, d.fecha_generacion, d.fecha_vencimiento, d.estado
-                             FROM usuarios u
-                             LEFT JOIN deudas d ON u.id_usuario = d.id_usuario AND d.estado = 'pendiente'";
-        
-                if ($tipo === 'manuales') {
-                    $sql_deudores = "$sql_base WHERE u.deuda > 0";
-                } elseif ($tipo === 'automaticas') {
-                    $sql_deudores = "$sql_base WHERE d.id_deuda IS NOT NULL";
-                } else {
-                    $sql_deudores = "$sql_base WHERE u.deuda > 0 OR d.id_deuda IS NOT NULL";
-                }
-        
-                $result = ejecutarConsulta($sql_deudores, $conn);
-        
-                if (isset($result['error'])) {
-                    echo json_encode(['status' => 'error', 'message' => $result['error']]);
+                $sql_deudores = "SELECT u.id_usuario, u.nombre, u.apellido, u.telefono, u.email, d.*
+                                 FROM usuarios u
+                                 INNER JOIN deudas d ON u.id_usuario = d.id_usuario
+                                 WHERE d.estado = 'pendiente'";
+                $deudores = ejecutarConsulta($sql_deudores, $conn);
+                if (isset($deudores['error'])) {
+                    $response['message'] = 'Error al obtener deudores: ' . $deudores['error'];
+                    echo json_encode($response);
                     die();
                 }
-        
-                $response = ['status' => 'success', 'deudores' => []];
-                $usuarios = [];
-        
-                foreach ($result as $row) {
-                    $id_usuario = $row['id_usuario'];
-                    if (!isset($usuarios[$id_usuario])) {
-                        $usuarios[$id_usuario] = [
-                            'id_usuario' => $id_usuario,
-                            'nombre' => $row['nombre'],
-                            'apellido' => $row['apellido'],
-                            'telefono' => $row['telefono'],
-                            'email' => $row['email'],
-                            'deudas' => [] // Siempre inicializa como un array vacío
-                        ];
-                    }
-        
-                    // Agregar deuda si existe
-                    if ($row['id_deuda'] !== null) {
-                        $usuarios[$id_usuario]['deudas'][] = [
-                            'id_deuda' => $row['id_deuda'],
-                            'monto' => $row['monto'],
-                            'fecha_generacion' => $row['fecha_generacion'],
-                            'fecha_vencimiento' => $row['fecha_vencimiento'],
-                            'estado' => $row['estado']
-                        ];
-                    }
-        
-                    // Agregar deuda manual como deuda especial
-                    if ($row['deuda_manual'] > 0 && empty($usuarios[$id_usuario]['deudas'])) {
-                        $usuarios[$id_usuario]['deudas'][] = [
-                            'id_deuda' => 'manual',
-                            'monto' => $row['deuda_manual'],
-                            'fecha_generacion' => '--',
-                            'fecha_vencimiento' => '--',
-                            'estado' => 'pendiente'
-                        ];
-                    }
-                }
-        
-                $response['deudores'] = array_values($usuarios);
-                echo json_encode($response);
+    
+                echo json_encode(['status' => 'success', 'deudores' => $deudores]);
                 die();
             }
-    break;              
+            break;             
 
     case 'usuario':
         if ($id !== null && $_SERVER['REQUEST_METHOD'] === 'GET') {
