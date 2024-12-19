@@ -290,41 +290,24 @@ if (!isset($_SESSION['admin_id'])) {
                 <a href="index.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver al Panel</a>
                 <a href="#" class="btn btn-success" data-toggle="modal" data-target="#anadirUsuarioModal"><i class="fas fa-user-plus"></i> Añadir Usuario</a>
             </div>
-
+            
             <!-- Contenedor de la deuda total -->
             <div id="deudaTotalContainer" class="total-deuda-container">
                 <h4>Total Deuda Pendiente: AR$ <span id="deudaTotal">0.00</span></h4>
                 <p>Cuotas Pendientes: AR$ <span id="deudaCuotas">0.00</span></p>
                 <p>Deudas Manuales: AR$ <span id="deudaManuales">0.00</span></p>
             </div>
-        <!-- Filtros y búsqueda -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div class="input-group" style="width: 50%;">
+            <div class="input-group mb-4">
                 <input type="text" class="form-control" id="buscarInput" placeholder="Buscar por nombre, correo o teléfono...">
-                <div class="input-group-append">
-                    <button class="btn btn-primary" id="buscarBtn"><i class="fas fa-search"></i></button>
-                </div>
             </div>
-            <div>
-                <label for="ordenDeuda" class="mr-2"><strong>Ordenar por Deuda:</strong></label>
-                <select id="ordenDeuda" class="form-control d-inline-block" style="width: auto;">
-                    <option value="asc">Menor a Mayor</option>
-                    <option value="desc">Mayor a Menor</option>
-                </select>
+
+            <div id="usuariosContainer">
+                <!-- Los usuarios se cargarán dinámicamente usando AJAX -->
+            </div>
+            <div id="resultadoBusqueda" style="display: none;">
+                <!-- Los resultados de la búsqueda se mostrarán aquí -->
             </div>
         </div>
-
-        <!-- Contenedor de usuarios -->
-        <div id="usuariosContainer">
-            <!-- Los usuarios se cargarán dinámicamente usando AJAX -->
-        </div>
-
-        <!-- Paginación -->
-        <nav>
-            <ul class="pagination justify-content-center mt-4" id="pagination">
-                <!-- Botones de paginación generados dinámicamente -->
-            </ul>
-        </nav>
 
         <!-- Modal para anadir usuario -->
         <div class="modal fade" id="anadirUsuarioModal" tabindex="-1" role="dialog" aria-labelledby="anadirUsuarioLabel" aria-hidden="true">
@@ -447,10 +430,9 @@ if (!isset($_SESSION['admin_id'])) {
                             <input type="hidden" id="editarIdUsuario" name="id_usuario">
                         </form>
                     </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary btn-lg" data-dismiss="modal">Cancelar</button>
-                            <button type="button" class="btn btn-primary btn-lg" id="guardarCambios">Guardar Cambios</button>
-                        </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-lg" data-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary btn-lg" id="guardarCambios">Guardar Cambios</button>
                     </div>
                 </div>
             </div>
@@ -463,8 +445,6 @@ if (!isset($_SESSION['admin_id'])) {
 
         <script>
             $(document).ready(function() {
-                const resultsPerPage = 15; // Número de resultados por página
-                let currentPage = 1;
                 cargarUsuarios();
                 cargarDeudaTotal();
 
@@ -480,40 +460,11 @@ if (!isset($_SESSION['admin_id'])) {
 
                 // Guardar el nuevo usuario
                 $('#guardarNuevoUsuario').click(
-                        function() {
-                            let formData = new FormData($('#anadirUsuarioForm')[0]);
-
-                            $.ajax({
-                                url: 'api_usuarios.php?action=anadir',
-                                method: 'POST',
-                                data: formData,
-                                contentType: false,
-                                processData: false,
-                                dataType: 'json',
-                                success: function(response) {
-                                    if (response.status === 'success') {
-                                        $('#anadirUsuarioModal').modal('hide');
-                                        Swal.fire('Éxito', 'Usuario añadido correctamente', 'success').then(() => {
-                                            cargarUsuarios();
-                                            cargarDeudaTotal();
-                                        });
-                                    } else {
-                                        Swal.fire('Error', response.message, 'error');
-                                    }
-                                },
-                                error: function(xhr, status, error) {
-                                    console.error('Error en la solicitud AJAX:', status, error);
-                                    Swal.fire('Error', 'Hubo un problema al añadir el usuario', 'error');
-                                }
-                            });
-                        }
-                    );
-                // Guardar los cambios realizados en el usuario
-                $('#guardarCambios').click(function() {
-                        let formData = new FormData($('#editarUsuarioForm')[0]);
+                    function() {
+                        let formData = new FormData($('#anadirUsuarioForm')[0]);
 
                         $.ajax({
-                            url: 'api_usuarios.php?action=actualizar',
+                            url: 'api_usuarios.php?action=anadir',
                             method: 'POST',
                             data: formData,
                             contentType: false,
@@ -521,10 +472,10 @@ if (!isset($_SESSION['admin_id'])) {
                             dataType: 'json',
                             success: function(response) {
                                 if (response.status === 'success') {
-                                    $('#editarUsuarioModal').modal('hide');
-                                    Swal.fire('Éxito', 'Usuario actualizado correctamente', 'success').then(() => {
-                                        cargarUsuarios(); // Recargar los usuarios después de actualizar
-                                        cargarDeudaTotal(); // Actualizar la deuda total después de actualizar un usuario
+                                    $('#anadirUsuarioModal').modal('hide');
+                                    Swal.fire('Éxito', 'Usuario añadido correctamente', 'success').then(() => {
+                                        cargarUsuarios();
+                                        cargarDeudaTotal();
                                     });
                                 } else {
                                     Swal.fire('Error', response.message, 'error');
@@ -532,232 +483,199 @@ if (!isset($_SESSION['admin_id'])) {
                             },
                             error: function(xhr, status, error) {
                                 console.error('Error en la solicitud AJAX:', status, error);
-                                Swal.fire('Error', 'Hubo un problema al actualizar el usuario', 'error');
+                                Swal.fire('Error', 'Hubo un problema al añadir el usuario', 'error');
                             }
                         });
+                    }
+                );
+
+                // Guardar los cambios realizados en el usuario
+                $('#guardarCambios').click(function() {
+                    let formData = new FormData($('#editarUsuarioForm')[0]);
+
+                    $.ajax({
+                        url: 'api_usuarios.php?action=actualizar',
+                        method: 'POST',
+                        data: formData,
+                        contentType: false,
+                        processData: false,
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                $('#editarUsuarioModal').modal('hide');
+                                Swal.fire('Éxito', 'Usuario actualizado correctamente', 'success').then(() => {
+                                    cargarUsuarios(); // Recargar los usuarios después de actualizar
+                                    cargarDeudaTotal(); // Actualizar la deuda total después de actualizar un usuario
+                                });
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error en la solicitud AJAX:', status, error);
+                            Swal.fire('Error', 'Hubo un problema al actualizar el usuario', 'error');
+                        }
                     });
+                });
+
                 // Buscar usuarios dinámicamente
                 $('#buscarInput').on('input', function () {
-                        let termino = $(this).val().trim();
-                        buscarUsuarios(termino);
+                    let termino = $(this).val().trim();
+                    buscarUsuarios(termino);
                 });
 
                 function buscarUsuarios(termino) {
-                        if (termino.length >= 3) {
-                            $('#usuariosContainer').hide();
-                            $('#resultadoBusqueda').show();
+                    if (termino.length >= 3) {
+                        $('#usuariosContainer').hide();
+                        $('#resultadoBusqueda').show();
 
-                            $.ajax({
-                                url: 'api_usuarios.php?action=buscar',
-                                method: 'GET',
-                                data: { termino: termino },
-                                dataType: 'json',
-                                success: function (response) {
-                                    if (response.status === 'success') {
-                                        let resultados = response.usuarios;
-                                        let html = '';
+                        $.ajax({
+                            url: 'api_usuarios.php?action=buscar',
+                            method: 'GET',
+                            data: { termino: termino },
+                            dataType: 'json',
+                            success: function (response) {
+                                if (response.status === 'success') {
+                                    let resultados = response.usuarios;
+                                    let html = '';
 
-                                        if (resultados.length > 0) {
-                                            resultados.forEach(function (usuario) {
-                                                html += generarTarjetaUsuario(usuario);
-                                            });
-                                        } else {
-                                            html = '<p class="text-center">No se encontraron resultados para la búsqueda.</p>';
-                                        }
-
-                                        $('#resultadoBusqueda').html(html);
+                                    if (resultados.length > 0) {
+                                        resultados.forEach(function (usuario) {
+                                            html += generarTarjetaUsuario(usuario);
+                                        });
                                     } else {
-                                        Swal.fire('Error', response.message, 'error');
+                                        html = '<p class="text-center">No se encontraron resultados para la búsqueda.</p>';
                                     }
-                                },
-                                error: function (xhr, status, error) {
-                                    console.error('Error en la solicitud AJAX:', status, error);
-                                    Swal.fire('Error', 'Hubo un problema al realizar la búsqueda.', 'error');
+
+                                    $('#resultadoBusqueda').html(html);
+                                } else {
+                                    Swal.fire('Error', response.message, 'error');
+                                }
+                            },
+                            error: function (xhr, status, error) {
+                                console.error('Error en la solicitud AJAX:', status, error);
+                                Swal.fire('Error', 'Hubo un problema al realizar la búsqueda.', 'error');
+                            }
+                        });
+                    } else if (termino === '') {
+                        $('#usuariosContainer').show();
+                        $('#resultadoBusqueda').hide().html('');
+                    }
+                }
+
+            function cargarUsuarios() {
+                $('#usuariosContainer').show();
+                $('#resultadoBusqueda').hide();
+                $.ajax({
+                    url: 'api_usuarios.php?action=usuarios',
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            let usuarios = response.usuarios;
+                            let usuariosContainer = '';
+
+                            usuarios.forEach(function(usuario) {
+                                usuariosContainer += generarTarjetaUsuario(usuario);
+                            });
+
+                            $('#usuariosContainer').html(usuariosContainer);
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error en la solicitud AJAX:', status, error);
+                    }
+                });
+            }
+
+            function cargarDeudaTotal() {
+                $.ajax({
+                    url: 'api_usuarios.php?action=total_deuda',
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            let deudaTotal = parseFloat(response.deuda_total);
+                            let deudaCuotas = parseFloat(response.deuda_cuotas);
+                            let deudaManuales = parseFloat(response.deuda_manuales);
+
+                            $('#deudaTotal').text(deudaTotal.toFixed(2));
+                            $('#deudaCuotas').text(deudaCuotas.toFixed(2));
+                            $('#deudaManuales').text(deudaManuales.toFixed(2));
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error en la solicitud AJAX:', status, error);
+                    }
+                });
+            }
+
+
+            // Abrir el modal de edición de usuario
+            function abrirModalEdicion(id_usuario) {
+                $.ajax({
+                    url: 'api_usuarios.php?action=usuario&id=' + id_usuario,
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            let usuario = response.usuario;
+                            $('#editarIdUsuario').val(usuario.id_usuario);
+                            $('#editarNombre').val(usuario.nombre);
+                            $('#editarApellido').val(usuario.apellido);
+                            $('#editarTelefono').val(usuario.telefono);
+                            $('#editarEmail').val(usuario.email);
+                            $('#editarDiaVencimiento').val(usuario.dia_vencimiento); // Asignar el día de vencimiento
+                            $('#editarDeuda').val(usuario.deuda);
+                            
+                            const planValue = usuario.plan.toLowerCase();
+                            $('#editarPlan option').each(function() {
+                                if ($(this).val().toLowerCase() === planValue) {
+                                    $(this).prop('selected', true);
                                 }
                             });
-                        } else if (termino === '') {
-                            $('#usuariosContainer').show();
-                            $('#resultadoBusqueda').hide().html('');
-                        }
-                }
-                function cargarUsuarios() {
-                    $('#usuariosContainer').show();
-                    $('#resultadoBusqueda').hide();
-                    $.ajax({
-                        url: 'api_usuarios.php?action=usuarios',
-                        method: 'GET',
-                        dataType: 'json',
-                        success: function(response) {
-                            if (response.status === 'success') {
-                                let usuarios = response.usuarios;
-                                let usuariosContainer = '';
 
-                                usuarios.forEach(function(usuario) {
-                                    usuariosContainer += generarTarjetaUsuario(usuario);
-                                });
-
-                                $('#usuariosContainer').html(usuariosContainer);
-                            } else {
-                                Swal.fire('Error', response.message, 'error');
-                            }
-                        },
-                        error: function(xhr, status, error) {
-                            console.error('Error en la solicitud AJAX:', status, error);
+                            $('#editarUsuarioModal').modal('show');
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
                         }
-                    });
-                }
-                function cargarDeudaTotal() {
-                    $.ajax({
-                        url: 'api_usuarios.php?action=total_deuda',
-                        method: 'GET',
-                        dataType: 'json',
-                        success: function(response) {
-                            if (response.status === 'success') {
-                                let deudaTotal = parseFloat(response.deuda_total);
-                                let deudaCuotas = parseFloat(response.deuda_cuotas);
-                                let deudaManuales = parseFloat(response.deuda_manuales);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error en la solicitud AJAX:', status, error);
+                    }
+                });
+            }
 
-                                $('#deudaTotal').text(deudaTotal.toFixed(2));
-                                $('#deudaCuotas').text(deudaCuotas.toFixed(2));
-                                $('#deudaManuales').text(deudaManuales.toFixed(2));
-                            } else {
-                                Swal.fire('Error', response.message, 'error');
-                            }
-                        },
-                        error: function(xhr, status, error) {
-                            console.error('Error en la solicitud AJAX:', status, error);
-                        }
-                    });
-                }
-                // Abrir el modal de edición de usuario
-                function abrirModalEdicion(id_usuario) {
-                    $.ajax({
-                        url: 'api_usuarios.php?action=usuario&id=' + id_usuario,
-                        method: 'GET',
-                        dataType: 'json',
-                        success: function(response) {
-                            if (response.status === 'success') {
-                                let usuario = response.usuario;
-                                $('#editarIdUsuario').val(usuario.id_usuario);
-                                $('#editarNombre').val(usuario.nombre);
-                                $('#editarApellido').val(usuario.apellido);
-                                $('#editarTelefono').val(usuario.telefono);
-                                $('#editarEmail').val(usuario.email);
-                                $('#editarDiaVencimiento').val(usuario.dia_vencimiento); // Asignar el día de vencimiento
-                                $('#editarDeuda').val(usuario.deuda);
-                                
-                                const planValue = usuario.plan.toLowerCase();
-                                $('#editarPlan option').each(function() {
-                                    if ($(this).val().toLowerCase() === planValue) {
-                                        $(this).prop('selected', true);
-                                    }
-                                });
-
-                                $('#editarUsuarioModal').modal('show');
-                            } else {
-                                Swal.fire('Error', response.message, 'error');
-                            }
-                        },
-                        error: function(xhr, status, error) {
-                            console.error('Error en la solicitud AJAX:', status, error);
-                        }
-                    });
-                }
-                // Hacer la función accesible globalmente
-                window.abrirModalEdicion = abrirModalEdicion;
-                function generarTarjetaUsuario(usuario) {
-                    return `
-                                                <div class="user-card">
-                                                    <div class="user-info">
-                                                        <div class="user-photo">
-                                                            ${usuario.foto ? `<img src="${usuario.foto}" alt="Foto de ${usuario.nombre}">` : '<img src="uploads/descarga.png" alt="Foto de usuario">'}
-                                                        </div>
-                                                    <div class="user-details">
-                                                        <h5>${usuario.nombre} ${usuario.apellido}</h5>
-                                                        <p><strong>Teléfono:</strong> ${usuario.telefono}</p>
-                                                        <p><strong>Correo Electrónico:</strong> ${usuario.email}</p>
-                                                        <p><strong>Plan:</strong> ${usuario.plan}</p>
-                                                        <p><strong>Día de Vencimiento:</strong> ${usuario.dia_vencimiento}</p>
-                                                        <p><strong>Deuda:</strong> AR$ ${usuario.deuda}</p>
+            // Hacer la función accesible globalmente
+            window.abrirModalEdicion = abrirModalEdicion;
+            function generarTarjetaUsuario(usuario) {
+            return `
+                                            <div class="user-card">
+                                                <div class="user-info">
+                                                    <div class="user-photo">
+                                                        ${usuario.foto ? `<img src="${usuario.foto}" alt="Foto de ${usuario.nombre}">` : '<img src="uploads/descarga.png" alt="Foto de usuario">'}
                                                     </div>
-                                                        <div class="user-actions">
-                                                            <button onclick="abrirModalEdicion(${usuario.id_usuario})" class="btn btn-warning btn-custom"><i class="fas fa-edit"></i> Editar</button>
-                                                            <a href="historial.php?id_usuario=${usuario.id_usuario}" class="btn btn-info btn-custom"><i class="fas fa-history"></i> Ver Historial</a>
-                                                        </div>
+                                                <div class="user-details">
+                                                    <h5>${usuario.nombre} ${usuario.apellido}</h5>
+                                                    <p><strong>Teléfono:</strong> ${usuario.telefono}</p>
+                                                    <p><strong>Correo Electrónico:</strong> ${usuario.email}</p>
+                                                    <p><strong>Plan:</strong> ${usuario.plan}</p>
+                                                    <p><strong>Día de Vencimiento:</strong> ${usuario.dia_vencimiento}</p>
+                                                    <p><strong>Deuda:</strong> AR$ ${usuario.deuda}</p>
+                                                </div>
+                                                    <div class="user-actions">
+                                                        <button onclick="abrirModalEdicion(${usuario.id_usuario})" class="btn btn-warning btn-custom"><i class="fas fa-edit"></i> Editar</button>
+                                                        <a href="historial.php?id_usuario=${usuario.id_usuario}" class="btn btn-info btn-custom"><i class="fas fa-history"></i> Ver Historial</a>
                                                     </div>
                                                 </div>
-                                            `;
-                }
-                
-                function cargarUsuarios(page = 1, orden = 'asc') {
-                    $.ajax({
-                        url: `api_usuarios.php?action=usuarios&page=${page}&per_page=${resultsPerPage}&orden=${orden}`,
-                        method: 'GET',
-                        dataType: 'json',
-                        success: function(response) {
-                            if (response.status === 'success') {
-                                let usuarios = response.usuarios;
-                                let totalPages = response.total_pages;
-                                let usuariosHtml = '';
-
-                                // Generar HTML para los usuarios
-                                usuarios.forEach(usuario => {
-                                    usuariosHtml += `
-                                        <div class="user-card">
-                                            <div class="user-details">
-                                                <h5>${usuario.nombre} ${usuario.apellido}</h5>
-                                                <p><strong>Teléfono:</strong> ${usuario.telefono}</p>
-                                                <p><strong>Email:</strong> ${usuario.email || 'N/A'}</p>
-                                                <p><strong>Plan:</strong> ${usuario.plan}</p>
-                                                <p><strong>Deuda Total:</strong> AR$ ${usuario.deuda.toFixed(2)}</p>
                                             </div>
-                                        </div>`;
-                                });
-
-                                $('#usuariosContainer').html(usuariosHtml);
-                                actualizarPaginacion(totalPages, page); // Actualizar paginación
-                            } else {
-                                Swal.fire('Error', response.message, 'error');
-                            }
-                        },
-                        error: function(xhr, status, error) {
-                            console.error('Error:', status, error);
-                            Swal.fire('Error', 'No se pudo cargar la lista de usuarios.', 'error');
-                        }
-                    });
-                }
-
-                function actualizarPaginacion(totalPages, currentPage) {
-                    let paginationHtml = '';
-
-                    // Crear botones de paginación
-                    for (let i = 1; i <= totalPages; i++) {
-                        paginationHtml += `
-                            <li class="page-item ${i === currentPage ? 'active' : ''}">
-                                <a href="#" class="page-link" data-page="${i}">${i}</a>
-                            </li>`;
-                    }
-
-                    $('#pagination').html(paginationHtml);
-
-                    // Manejar clic en los botones de paginación
-                    $('.page-link').on('click', function(e) {
-                        e.preventDefault();
-                        currentPage = $(this).data('page');
-                        const orden = $('#ordenDeuda').val(); // Obtener el orden actual
-                        cargarUsuarios(currentPage, orden); // Cargar usuarios con el nuevo orden
-                    });
-                }
-
-                // Manejar cambio de orden de deuda
-                $('#ordenDeuda').on('change', function() {
-                    const orden = $(this).val(); // Obtener el valor seleccionado
-                    cargarUsuarios(currentPage, orden); // Cargar usuarios con el nuevo orden
-                });
-
-                cargarUsuarios(currentPage); // Cargar usuarios al inicio
+                                        `;
+                                }
             });
-
 
         </script>
 

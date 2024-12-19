@@ -97,45 +97,43 @@ switch ($action) {
     break;
     case 'usuarios':
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
-            $per_page = isset($_GET['per_page']) ? intval($_GET['per_page']) : 15;
-            $offset = ($page - 1) * $per_page;
-            $orden = isset($_GET['orden']) && $_GET['orden'] === 'desc' ? 'DESC' : 'ASC';
-    
-            $sql_total = "SELECT COUNT(*) AS total FROM usuarios";
-            $total_result = ejecutarConsulta($sql_total, $conn);
-            $total_users = $total_result[0]['total'] ?? 0;
-            $total_pages = ceil($total_users / $per_page);
-    
-            $sql_usuarios = "SELECT u.*, 
-                            (SELECT SUM(d.monto) FROM deudas d 
-                             WHERE d.id_usuario = u.id_usuario AND d.estado = 'pendiente') AS deuda_total
-                             FROM usuarios u
-                             ORDER BY (deuda_total + u.deuda) $orden
-                             LIMIT $offset, $per_page";
-    
-            $usuarios = ejecutarConsulta($sql_usuarios, $conn);
-    
-            if (isset($usuarios['error'])) {
-                $response['message'] = 'Error al obtener usuarios: ' . $usuarios['error'];
-            } else {
-                $response = [
-                    'status' => 'success',
-                    'usuarios' => array_map(function($usuario) {
-                        $usuario['deuda_total'] = $usuario['deuda_total'] ?? 0.0;
-                        $usuario['deuda_manual'] = $usuario['deuda'];
-                        $usuario['deuda'] = $usuario['deuda_total'] + $usuario['deuda_manual'];
-                        return $usuario;
-                    }, $usuarios),
-                    'total_pages' => $total_pages
-                ];
-            }
-    
-            echo json_encode($response);
-            die();
+                error_log("Ejecutando acción 'usuarios'");
+                // Obtener el día y ajustar al último día del mes actual
+                $dia_actual = date('j'); // Día actual
+                $mes_actual = date('n'); // Mes actual
+                $anio_actual = date('Y'); // Año actual
+                $dia_ajustado = ajustarDiaVencimiento($dia_actual, $mes_actual, $anio_actual);
+                    
+                // Consulta ajustada
+                $sql_usuarios = "SELECT u.*, 
+                                (SELECT SUM(d.monto) 
+                                FROM deudas d 
+                                WHERE d.id_usuario = u.id_usuario AND d.estado = 'pendiente' AND u.dia_vencimiento <= $dia_ajustado) AS deuda_total
+                                FROM usuarios u";
+                                
+                $usuarios = ejecutarConsulta($sql_usuarios, $conn);
+            
+                if (isset($usuarios['error'])) {
+                    $response['message'] = 'Error al obtener usuarios: ' . $usuarios['error'];
+                } else {
+                    // Formatear la respuesta con los usuarios y su deuda total acumulada
+                    $response = [
+                        'status' => 'success',
+                        'usuarios' => array_map(function($usuario) {
+                            // Asegurarnos de que la deuda sea al menos 0 si no tiene deudas
+                            $usuario['deuda'] = $usuario['deuda_total'] ? floatval($usuario['deuda_total']) : 0.0;
+                            unset($usuario['deuda_total']); // Remover el campo innecesario
+                            return $usuario;
+                        }, $usuarios)
+                    ];
+                }
+            
+                echo json_encode($response);
+                die();
+        } else {
+                error_log("Método HTTP incorrecto para la acción 'usuarios'");
         }
-        break;
-    
+    break;
     case 'deudores':
             if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 $tipo = isset($_GET['tipo']) ? $_GET['tipo'] : 'todas';
