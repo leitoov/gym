@@ -97,43 +97,55 @@ switch ($action) {
     break;
     case 'usuarios':
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-                error_log("Ejecutando acción 'usuarios'");
-                // Obtener el día y ajustar al último día del mes actual
-                $dia_actual = date('j'); // Día actual
-                $mes_actual = date('n'); // Mes actual
-                $anio_actual = date('Y'); // Año actual
-                $dia_ajustado = ajustarDiaVencimiento($dia_actual, $mes_actual, $anio_actual);
-                    
-                // Consulta ajustada
-                $sql_usuarios = "SELECT u.*, 
-                                (SELECT SUM(d.monto) 
-                                FROM deudas d 
-                                WHERE d.id_usuario = u.id_usuario AND d.estado = 'pendiente' AND u.dia_vencimiento <= $dia_ajustado) AS deuda_total
-                                FROM usuarios u";
-                                
-                $usuarios = ejecutarConsulta($sql_usuarios, $conn);
-            
-                if (isset($usuarios['error'])) {
-                    $response['message'] = 'Error al obtener usuarios: ' . $usuarios['error'];
-                } else {
-                    // Formatear la respuesta con los usuarios y su deuda total acumulada
-                    $response = [
-                        'status' => 'success',
-                        'usuarios' => array_map(function($usuario) {
-                            // Asegurarnos de que la deuda sea al menos 0 si no tiene deudas
-                            $usuario['deuda'] = $usuario['deuda_total'] ? floatval($usuario['deuda_total']) : 0.0;
-                            unset($usuario['deuda_total']); // Remover el campo innecesario
-                            return $usuario;
-                        }, $usuarios)
-                    ];
-                }
-            
+            error_log("Ejecutando acción 'usuarios'");
+    
+            // Obtener usuarios con sus datos
+            $sql_usuarios = "SELECT u.*, 
+                                (SELECT MAX(mes_pagado) FROM historial_pagos WHERE id_usuario = u.id_usuario) AS ultimo_pago,
+                                (SELECT MAX(fecha_vencimiento) FROM deudas WHERE id_usuario = u.id_usuario AND estado = 'pendiente') AS ultimo_vencimiento
+                             FROM usuarios u";
+                             
+            $usuarios = ejecutarConsulta($sql_usuarios, $conn);
+            if (isset($usuarios['error'])) {
+                $response['message'] = 'Error al obtener usuarios: ' . $usuarios['error'];
                 echo json_encode($response);
                 die();
-        } else {
-                error_log("Método HTTP incorrecto para la acción 'usuarios'");
+            }
+    
+            // Generar deudas pendientes
+            foreach ($usuarios as $usuario) {
+                $id_usuario = $usuario['id_usuario'];
+                $ultimo_pago = $usuario['ultimo_pago'] ?? $usuario['fecha_registro'];
+                $fecha_actual = date('Y-m-d');
+                $mes_actual = date('Y-m');
+    
+                // Generar cuotas mensuales desde el último pago o registro
+                $fecha_cuota = date('Y-m', strtotime($ultimo_pago));
+                while ($fecha_cuota < $mes_actual) {
+                    $fecha_cuota_vencimiento = date('Y-m-d', strtotime("$fecha_cuota-{$usuario['dia_vencimiento']}"));
+    
+                    // Insertar deuda si no existe
+                    $sql_verificar = "SELECT COUNT(*) AS existe 
+                                      FROM deudas 
+                                      WHERE id_usuario = $id_usuario 
+                                      AND fecha_vencimiento = '$fecha_cuota_vencimiento'";
+                    $existe = ejecutarConsulta($sql_verificar, $conn)[0]['existe'];
+    
+                    if (!$existe) {
+                        $monto_cuota = 1500; // Ajusta según el plan del usuario
+                        $sql_insertar = "INSERT INTO deudas (id_usuario, monto, fecha_generacion, fecha_vencimiento, estado) 
+                                         VALUES ($id_usuario, $monto_cuota, '$fecha_actual', '$fecha_cuota_vencimiento', 'pendiente')";
+                        $conn->query($sql_insertar);
+                    }
+    
+                    $fecha_cuota = date('Y-m', strtotime("$fecha_cuota +1 month"));
+                }
+            }
+    
+            echo json_encode(['status' => 'success', 'usuarios' => $usuarios]);
+            die();
         }
-    break;
+        break;
     case 'deudores':
             if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 $tipo = isset($_GET['tipo']) ? $_GET['tipo'] : 'todas';

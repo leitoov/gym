@@ -564,32 +564,32 @@ if (!isset($_SESSION['admin_id'])) {
                     }
                 }
 
-            function cargarUsuarios() {
-                $('#usuariosContainer').show();
-                $('#resultadoBusqueda').hide();
-                $.ajax({
-                    url: 'api_usuarios.php?action=usuarios',
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.status === 'success') {
-                            let usuarios = response.usuarios;
-                            let usuariosContainer = '';
+                function cargarUsuarios() {
+                    $('#usuariosContainer').show();
+                    $('#resultadoBusqueda').hide();
+                    $.ajax({
+                        url: 'api_usuarios.php?action=usuarios',
+                        method: 'GET',
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                let usuarios = response.usuarios;
+                                let usuariosContainer = '';
 
                             usuarios.forEach(function(usuario) {
                                 usuariosContainer += generarTarjetaUsuario(usuario);
                             });
 
-                            $('#usuariosContainer').html(usuariosContainer);
-                        } else {
-                            Swal.fire('Error', response.message, 'error');
+                                $('#usuariosContainer').html(usuariosContainer);
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error en la solicitud AJAX:', status, error);
                         }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error en la solicitud AJAX:', status, error);
-                    }
-                });
-            }
+                    });
+                }
 
             function cargarDeudaTotal() {
                 $.ajax({
