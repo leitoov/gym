@@ -294,8 +294,7 @@ if (!isset($_SESSION['admin_id'])) {
             <!-- Contenedor de la deuda total -->
             <div id="deudaTotalContainer" class="total-deuda-container">
                 <h4>Total Deuda Pendiente: AR$ <span id="deudaTotal">0.00</span></h4>
-                <p>Cuotas Pendientes: AR$ <span id="deudaCuotas">0.00</span></p>
-                <p>Deudas Manuales: AR$ <span id="deudaManuales">0.00</span></p>
+                
             </div>
             <div class="input-group mb-4">
                 <input type="text" class="form-control" id="buscarInput" placeholder="Buscar por nombre, correo o teléfono...">

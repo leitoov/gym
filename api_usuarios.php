@@ -70,6 +70,15 @@ function generarDeudasAutomaticas($conn) {
         $mes_inicio = date('Y-m', strtotime("$fecha_registro +1 month"));
         $mes_vencimiento = $mes_inicio;
 
+        // Revisar historial de pagos para omitir meses ya pagados
+        $sql_ultimo_pago = "SELECT MAX(mes_pagado) AS ultimo_mes_pagado 
+                            FROM historial_pagos 
+                            WHERE id_usuario = $id_usuario";
+        $ultimo_pago = ejecutarConsulta($sql_ultimo_pago, $conn);
+        if (!empty($ultimo_pago[0]['ultimo_mes_pagado'])) {
+            $mes_vencimiento = date('Y-m', strtotime($ultimo_pago[0]['ultimo_mes_pagado'] . ' +1 month'));
+        }
+
         // Generar deudas hasta el mes actual
         while ($mes_vencimiento <= $mes_actual) {
             $fecha_vencimiento = date('Y-m-d', strtotime("$mes_vencimiento-$dia_vencimiento"));
@@ -93,6 +102,7 @@ function generarDeudasAutomaticas($conn) {
         }
     }
 }
+
 // Lógica de las acciones disponibles
 switch ($action) {
     case 'totales':
@@ -159,21 +169,80 @@ switch ($action) {
         break;
         case 'deudores':
             if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-                $sql_deudores = "SELECT u.id_usuario, u.nombre, u.apellido, u.telefono, u.email, d.*
-                                 FROM usuarios u
-                                 INNER JOIN deudas d ON u.id_usuario = d.id_usuario
-                                 WHERE d.estado = 'pendiente'";
-                $deudores = ejecutarConsulta($sql_deudores, $conn);
-                if (isset($deudores['error'])) {
-                    $response['message'] = 'Error al obtener deudores: ' . $deudores['error'];
-                    echo json_encode($response);
+                $tipo = isset($_GET['tipo']) ? $_GET['tipo'] : 'todas';
+        
+                // Consulta base para deudores
+                $sql_base = "SELECT u.id_usuario, u.nombre, u.apellido, 
+                                    COALESCE(u.telefono, 'No disponible') AS telefono, 
+                                    COALESCE(u.email, 'No disponible') AS email, 
+                                    u.deuda AS deuda_manual, 
+                                    d.id_deuda, d.monto, d.fecha_generacion, d.fecha_vencimiento, d.estado
+                             FROM usuarios u
+                             LEFT JOIN deudas d ON u.id_usuario = d.id_usuario AND d.estado = 'pendiente'";
+        
+                if ($tipo === 'manuales') {
+                    // Filtro para deudas manuales
+                    $sql_deudores = "$sql_base WHERE u.deuda IS NOT NULL AND u.deuda > 0";
+                } elseif ($tipo === 'automaticas') {
+                    // Filtro para deudas automáticas
+                    $sql_deudores = "$sql_base WHERE d.id_deuda IS NOT NULL";
+                } else {
+                    // Todos los deudores
+                    $sql_deudores = "$sql_base WHERE (u.deuda > 0 OR d.id_deuda IS NOT NULL)";
+                }
+        
+                // Ejecutar consulta
+                $result = ejecutarConsulta($sql_deudores, $conn);
+        
+                if (isset($result['error'])) {
+                    echo json_encode(['status' => 'error', 'message' => $result['error']]);
                     die();
                 }
-    
-                echo json_encode(['status' => 'success', 'deudores' => $deudores]);
+        
+                $response = ['status' => 'success', 'deudores' => []];
+                $usuarios = [];
+        
+                foreach ($result as $row) {
+                    $id_usuario = $row['id_usuario'];
+                    if (!isset($usuarios[$id_usuario])) {
+                        $usuarios[$id_usuario] = [
+                            'id_usuario' => $id_usuario,
+                            'nombre' => $row['nombre'],
+                            'apellido' => $row['apellido'],
+                            'telefono' => $row['telefono'],
+                            'email' => $row['email'],
+                            'deudas' => [] // Siempre inicializa como un array vacío
+                        ];
+                    }
+        
+                    // Agregar deuda si existe
+                    if ($row['id_deuda'] !== null) {
+                        $usuarios[$id_usuario]['deudas'][] = [
+                            'id_deuda' => $row['id_deuda'],
+                            'monto' => $row['monto'],
+                            'fecha_generacion' => $row['fecha_generacion'],
+                            'fecha_vencimiento' => $row['fecha_vencimiento'],
+                            'estado' => $row['estado']
+                        ];
+                    }
+        
+                    // Agregar deuda manual como deuda especial
+                    if ($row['deuda_manual'] > 0 && empty($usuarios[$id_usuario]['deudas'])) {
+                        $usuarios[$id_usuario]['deudas'][] = [
+                            'id_deuda' => 'manual',
+                            'monto' => $row['deuda_manual'],
+                            'fecha_generacion' => '--',
+                            'fecha_vencimiento' => '--',
+                            'estado' => 'pendiente'
+                        ];
+                    }
+                }
+        
+                $response['deudores'] = array_values($usuarios);
+                echo json_encode($response);
                 die();
             }
-            break;             
+                 
 
     case 'usuario':
         if ($id !== null && $_SERVER['REQUEST_METHOD'] === 'GET') {
