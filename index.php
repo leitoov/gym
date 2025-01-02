@@ -322,7 +322,7 @@
                 </div>
             </div>
 
-            <div class="stat-card">
+            <!--div class="stat-card">
                 <div class="stat-icon">
                     <span class="material-icons">attach_money</span>
                 </div>
@@ -335,7 +335,7 @@
                         Otras deudas
                     </a>
                 </div>
-            </div>
+            </div-->
 
             <div class="stat-card">
                 <div class="stat-icon">
@@ -382,7 +382,7 @@
             if (data.status === 'success') {
                 animateNumber(document.getElementById('totalUsuarios'), data.total_usuarios);
                 animateNumber(document.getElementById('totalDeudores'), data.deudas_cuotas);
-                animateNumber(document.getElementById('totalDeudasManuales'), data.deudas_manuales);
+                //animateNumber(document.getElementById('totalDeudasManuales'), data.deudas_manuales);
             }
         })
     .catch(error => console.error('Error:', error));

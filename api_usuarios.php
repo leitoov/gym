@@ -112,7 +112,7 @@ switch ($action) {
             $response = [
                 'status' => 'success',
                 'total_usuarios' => 0,
-                'deudas_manuales' => 0,
+                //'deudas_manuales' => 0,
                 'deudas_cuotas' => 0
             ];
     
@@ -126,13 +126,13 @@ switch ($action) {
             }
     
             // Total de usuarios con deudas manuales
-            $sql_deudas_manuales = "SELECT COUNT(*) as total FROM usuarios WHERE deuda > 0";
-            $resultado_manuales = ejecutarConsulta($sql_deudas_manuales, $conn);
-            if (isset($resultado_manuales[0])) {
+            //$sql_deudas_manuales = "SELECT COUNT(*) as total FROM usuarios WHERE deuda > 0";
+            //$resultado_manuales = ejecutarConsulta($sql_deudas_manuales, $conn);
+           /* if (isset($resultado_manuales[0])) {
                 $response['deudas_manuales'] = $resultado_manuales[0]['total'];
             } else {
                 error_log("Error al obtener el total de deudas manuales: " . json_encode($resultado_manuales));
-            }
+            }*/
     
             // Total de usuarios con deudas de cuotas vencidas
             $sql_deudas_cuotas = "SELECT COUNT(DISTINCT d.id_usuario) as total 
@@ -226,7 +226,7 @@ switch ($action) {
                         ];
                     }
         
-                    // Agregar deuda manual como deuda especial
+                    /*
                     if ($row['deuda_manual'] > 0 && empty($usuarios[$id_usuario]['deudas'])) {
                         $usuarios[$id_usuario]['deudas'][] = [
                             'id_deuda' => 'manual',
@@ -235,7 +235,7 @@ switch ($action) {
                             'fecha_vencimiento' => '--',
                             'estado' => 'pendiente'
                         ];
-                    }
+                    }*/
                 }
         
                 $response['deudores'] = array_values($usuarios);
@@ -380,7 +380,7 @@ switch ($action) {
                     die();
                 }
         
-                // Caso: Deuda Manual
+                /*
                 if ($id_deuda === null || $id_deuda === 'manual') {
                     $sql_actualizar_deuda_manual = "UPDATE usuarios SET deuda = 0 WHERE id_usuario = $id_usuario";
         
@@ -393,7 +393,7 @@ switch ($action) {
                         $response['message'] = 'Error al actualizar deuda manual: ' . $conn->error;
                         error_log($response['message']);
                     }
-                } 
+                } */
                 // Caso: Deuda Automática
                 elseif ($id_deuda !== null) {
                     $fecha_pago = date('Y-m-d');
@@ -428,17 +428,17 @@ switch ($action) {
             $sql_total_deudas_mensuales = "SELECT SUM(monto) AS total_mensual FROM deudas WHERE estado = 'pendiente'";
             $total_mensual = ejecutarConsulta($sql_total_deudas_mensuales, $conn);
     
-            $sql_total_deudas_manuales = "SELECT SUM(deuda) AS total_manual FROM usuarios WHERE deuda > 0";
-            $total_manual = ejecutarConsulta($sql_total_deudas_manuales, $conn);
+            //$sql_total_deudas_manuales = "SELECT SUM(deuda) AS total_manual FROM usuarios WHERE deuda > 0";
+            //$total_manual = ejecutarConsulta($sql_total_deudas_manuales, $conn);
     
             $total_mensual = $total_mensual[0]['total_mensual'] ?? 0;
-            $total_manual = $total_manual[0]['total_manual'] ?? 0;
+            //$total_manual = $total_manual[0]['total_manual'] ?? 0;
     
             echo json_encode([
                 'status' => 'success',
-                'deuda_total' => $total_mensual + $total_manual,
+                'deuda_total' => $total_mensual,
                 'deuda_mensual' => $total_mensual,
-                'deuda_manual' => $total_manual,
+                //'deuda_manual' => $total_manual,
             ]);
             die();
         }

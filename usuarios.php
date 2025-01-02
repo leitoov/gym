@@ -352,10 +352,10 @@ if (!isset($_SESSION['admin_id'])) {
                                         <label for="anadirDiaVencimiento">Día de Vencimiento</label>
                                         <input type="number" class="form-control form-control-lg" id="anadirDiaVencimiento" name="dia_vencimiento" min="1" max="31" required>
                                     </div>
-                                    <div class="form-group">
+                                    <!--div class="form-group">
                                         <label for="anadirDeuda">Deuda (AR$)</label>
                                         <input type="number" class="form-control form-control-lg" id="anadirDeuda" name="deuda" value="0.00" step="0.01" required>
-                                    </div>
+                                    </div -->
                                     <div class="form-group">
                                         <label for="anadirFoto">Foto</label>
                                         <input type="file" class="form-control-file" id="anadirFoto" name="foto" accept="image/*" capture="camera">
@@ -417,10 +417,10 @@ if (!isset($_SESSION['admin_id'])) {
                                         <label for="editarDiaVencimiento">Día de Vencimiento</label>
                                         <input type="number" class="form-control form-control-lg" id="editarDiaVencimiento" name="dia_vencimiento" min="1" max="31" required>
                                     </div>
-                                    <div class="form-group">
+                                    <!-- div class="form-group">
                                         <label for="editarDeuda">Deuda (AR$)</label>
                                         <input type="number" class="form-control form-control-lg" id="editarDeuda" name="deuda" value="0.00" step="0.01" required>
-                                    </div>
+                                    </div -->
                                     <div class="form-group">
                                         <label for="editarFoto">Foto</label>
                                         <input type="file" class="form-control-file" id="anadirFoto" name="foto" accept="image/*" capture="camera">
@@ -599,11 +599,11 @@ if (!isset($_SESSION['admin_id'])) {
                         if (response.status === 'success') {
                             let deudaTotal = parseFloat(response.deuda_total);
                             let deudaCuotas = parseFloat(response.deuda_cuotas);
-                            let deudaManuales = parseFloat(response.deuda_manuales);
+                            //let deudaManuales = parseFloat(response.deuda_manuales);
 
                             $('#deudaTotal').text(deudaTotal.toFixed(2));
                             $('#deudaCuotas').text(deudaCuotas.toFixed(2));
-                            $('#deudaManuales').text(deudaManuales.toFixed(2));
+                            //$('#deudaManuales').text(deudaManuales.toFixed(2));
                         } else {
                             Swal.fire('Error', response.message, 'error');
                         }
@@ -630,7 +630,7 @@ if (!isset($_SESSION['admin_id'])) {
                             $('#editarTelefono').val(usuario.telefono);
                             $('#editarEmail').val(usuario.email);
                             $('#editarDiaVencimiento').val(usuario.dia_vencimiento); // Asignar el día de vencimiento
-                            $('#editarDeuda').val(usuario.deuda);
+                            $('#editarDeuda').val(0);
                             
                             const planValue = usuario.plan.toLowerCase();
                             $('#editarPlan option').each(function() {
