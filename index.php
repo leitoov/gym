@@ -338,15 +338,15 @@
             </div>
         </div>
         <section id="editar-planes" style="margin-top: 20px;">
-            <h3>Editar Planes</h3>
-            <table border="1" style="width: 100%; text-align: left;">
+            <h3 style="color: var(--primary-dark); font-weight: 600; text-align: center;">Editar Planes</h3>
+            <table style="width: 100%; border-collapse: collapse; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
                 <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Precio</th>
-                        <th>Duración (días)</th>
-                        <th>Acción</th>
+                    <tr style="background-color: var(--primary); color: white; text-align: left;">
+                        <th style="padding: 10px; border-bottom: 2px solid var(--primary-dark);">ID</th>
+                        <th style="padding: 10px; border-bottom: 2px solid var(--primary-dark);">Nombre</th>
+                        <th style="padding: 10px; border-bottom: 2px solid var(--primary-dark);">Precio</th>
+                        <th style="padding: 10px; border-bottom: 2px solid var(--primary-dark);">Duración (días)</th>
+                        <th style="padding: 10px; border-bottom: 2px solid var(--primary-dark);">Acción</th>
                     </tr>
                 </thead>
                 <tbody id="planes-listado">
@@ -387,7 +387,7 @@
             }
         })
     .catch(error => console.error('Error:', error));
-    
+
     //Actualizar planes
     fetch('api_usuarios.php?action=planes')
         .then(response => response.json())
