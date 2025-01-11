@@ -154,16 +154,14 @@ switch ($action) {
             generarDeudasAutomaticas($conn);
 
             $sql_usuarios = "SELECT 
-                    u.*, 
-                    p.precio AS monto_cuota,
-                    (SELECT monto 
-                     FROM deudas 
-                     WHERE id_usuario = u.id_usuario 
-                     AND estado = 'pendiente' 
-                     ORDER BY fecha_vencimiento ASC 
-                     LIMIT 1) AS deuda_pendiente
-                 FROM usuarios u
-                 INNER JOIN planes p ON u.plan = p.nombre";
+                   u.*, 
+                   p.precio AS monto_cuota,
+                   (SELECT SUM(monto) 
+                    FROM deudas 
+                    WHERE id_usuario = u.id_usuario 
+                    AND estado = 'pendiente') AS deuda_pendiente
+                FROM usuarios u
+                INNER JOIN planes p ON u.plan = p.nombre";
             $usuarios = ejecutarConsulta($sql_usuarios, $conn);
             if (isset($usuarios['error'])) {
                 $response['message'] = 'Error al obtener usuarios: ' . $usuarios['error'];
