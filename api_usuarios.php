@@ -392,20 +392,6 @@ switch ($action) {
                     die();
                 }
         
-                /*
-                if ($id_deuda === null || $id_deuda === 'manual') {
-                    $sql_actualizar_deuda_manual = "UPDATE usuarios SET deuda = 0 WHERE id_usuario = $id_usuario";
-        
-                    if ($conn->query($sql_actualizar_deuda_manual) === TRUE) {
-                        $response = [
-                            'status' => 'success',
-                            'message' => 'Deuda manual marcada como pagada correctamente'
-                        ];
-                    } else {
-                        $response['message'] = 'Error al actualizar deuda manual: ' . $conn->error;
-                        error_log($response['message']);
-                    }
-                } */
                 // Caso: Deuda Automática
                 elseif ($id_deuda !== null) {
                     $fecha_pago = date('Y-m-d');
@@ -432,25 +418,18 @@ switch ($action) {
         }
     break;
         
-        
-         
-
     case 'total_deuda':
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $sql_total_deudas_mensuales = "SELECT SUM(monto) AS total_mensual FROM deudas WHERE estado = 'pendiente'";
             $total_mensual = ejecutarConsulta($sql_total_deudas_mensuales, $conn);
     
-            //$sql_total_deudas_manuales = "SELECT SUM(deuda) AS total_manual FROM usuarios WHERE deuda > 0";
-            //$total_manual = ejecutarConsulta($sql_total_deudas_manuales, $conn);
     
             $total_mensual = $total_mensual[0]['total_mensual'] ?? 0;
-            //$total_manual = $total_manual[0]['total_manual'] ?? 0;
     
             echo json_encode([
                 'status' => 'success',
                 'deuda_total' => $total_mensual,
                 'deuda_mensual' => $total_mensual,
-                //'deuda_manual' => $total_manual,
             ]);
             die();
         }
@@ -479,6 +458,32 @@ switch ($action) {
                 die();
         }
     break;
+    case 'planes':
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $sql_planes = "SELECT * FROM planes";
+            $planes = ejecutarConsulta($sql_planes, $conn);
+            echo json_encode(['status' => 'success', 'planes' => $planes]);
+            die();
+        }
+        break;
+    case 'editar_plan':
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $data = json_decode(file_get_contents('php://input'), true);
+                $id_plan = $data['id_plan'];
+                $nombre = $data['nombre'];
+                $precio = $data['precio'];
+        
+                $sql_update = "UPDATE planes SET nombre = ?, precio = ? WHERE id_plan = ?";
+                $stmt = $conn->prepare($sql_update);
+                $stmt->bind_param("sdi", $nombre, $precio, $id_plan);
+                if ($stmt->execute()) {
+                    echo json_encode(['status' => 'success', 'message' => 'Plan actualizado correctamente.']);
+                } else {
+                    echo json_encode(['status' => 'error', 'message' => 'Error al actualizar el plan.']);
+                }
+                die();
+            }
+        break;
     default:
         error_log("Acción no válida o no especificada: $action");
         echo json_encode($response);

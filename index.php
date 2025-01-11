@@ -322,21 +322,6 @@
                 </div>
             </div>
 
-            <!--div class="stat-card">
-                <div class="stat-icon">
-                    <span class="material-icons">attach_money</span>
-                </div>
-                <div class="stat-info">
-                    <h3>Deudas Manuales</h3>
-                    <div class="stat-number" id="totalDeudasManuales">0</div>
-                    <p class="stat-description">Usuarios con deudas manuales registradas</p>
-                    <a href="deudores.php?tipo=manuales" class="stat-action">
-                        <span class="material-icons">visibility</span>
-                        Otras deudas
-                    </a>
-                </div>
-            </div-->
-
             <div class="stat-card">
                 <div class="stat-icon">
                     <span class="material-icons">notifications</span>
@@ -352,6 +337,23 @@
                 </div>
             </div>
         </div>
+        <section id="editar-planes" style="margin-top: 20px;">
+            <h3>Editar Planes</h3>
+            <table border="1" style="width: 100%; text-align: left;">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Precio</th>
+                        <th>Duración (días)</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="planes-listado">
+                    <!-- Los planes se cargarán dinámicamente aquí -->
+                </tbody>
+            </table>
+        </section>
     </div>
 
 
@@ -382,10 +384,41 @@
             if (data.status === 'success') {
                 animateNumber(document.getElementById('totalUsuarios'), data.total_usuarios);
                 animateNumber(document.getElementById('totalDeudores'), data.deudas_cuotas);
-                //animateNumber(document.getElementById('totalDeudasManuales'), data.deudas_manuales);
             }
         })
     .catch(error => console.error('Error:', error));
+    
+    //Actualizar planes
+    fetch('api_usuarios.php?action=planes')
+        .then(response => response.json())
+        .then(data => {
+            const planes = data.planes;
+            const listado = document.getElementById('planes-listado');
+            planes.forEach(plan => {
+                listado.innerHTML += `
+                    <tr>
+                        <td>${plan.id_plan}</td>
+                        <td><input type="text" value="${plan.nombre}" id="nombre-${plan.id_plan}" /></td>
+                        <td><input type="number" value="${plan.precio}" id="precio-${plan.id_plan}" step="0.01" /></td>
+                        <td>${plan.duracion_dias}</td>
+                        <td><button onclick="guardarCambios(${plan.id_plan})">Guardar</button></td>
+                    </tr>
+                `;
+            });
+        });
+
+    // Guardar cambios en el plan
+    function guardarCambios(id) {
+        const nombre = document.getElementById(`nombre-${id}`).value;
+        const precio = document.getElementById(`precio-${id}`).value;
+        fetch('api_usuarios.php?action=editar_plan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id_plan: id, nombre, precio })
+        })
+        .then(response => response.json())
+        .then(data => alert(data.message));
+    }
     </script>
 </body>
 </html>
