@@ -271,6 +271,104 @@
                 padding: 1.5rem;
             }
         }
+        .planes-section {
+            background-color: #fff;
+            padding: 20px;
+            margin: 20px auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            max-width: 1200px;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .planes-section h3 {
+            font-size: 1.8rem;
+            color: var(--primary-dark);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Contenedor responsivo para la tabla */
+        .planes-table-container {
+            overflow-x: auto; /* Permite el desplazamiento horizontal en pantallas pequeñas */
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Tabla estilizada */
+        .planes-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            text-align: left;
+            font-size: 0.95rem;
+            min-width: 600px; /* Asegura que tenga un tamaño mínimo adecuado */
+        }
+
+        .planes-table th, 
+        .planes-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .planes-table thead {
+            background-color: var(--primary);
+            color: white;
+            font-weight: bold;
+        }
+
+        .planes-table tbody tr:nth-child(odd) {
+            background-color: #f9f9f9;
+        }
+
+        .planes-table tbody tr:nth-child(even) {
+            background-color: #fff;
+        }
+
+        .planes-table tbody tr:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            transition: background-color 0.3s ease;
+        }
+
+        /* Botones dentro de la tabla */
+        .planes-table td button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--primary-dark);
+            color: white;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .planes-table td button:hover {
+            background-color: var(--primary);
+        }
+
+        /* Estilo para pantallas pequeñas */
+        @media screen and (max-width: 768px) {
+            .planes-section {
+                padding: 15px;
+                font-size: 0.9rem;
+            }
+
+            .planes-table th, 
+            .planes-table td {
+                padding: 10px;
+                font-size: 0.85rem;
+            }
+
+            .planes-table {
+                font-size: 0.85rem;
+                min-width: 100%; /* Se ajusta mejor a pantallas pequeñas */
+            }
+
+            .planes-table td button {
+                font-size: 0.75rem;
+                padding: 5px 10px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -337,22 +435,24 @@
                 </div>
             </div>
         </div>
-        <section id="editar-planes" style="margin-top: 20px;">
-            <h3 style="color: var(--primary-dark); font-weight: 600; text-align: center;">Editar Planes</h3>
-            <table style="width: 100%; border-collapse: collapse; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
-                <thead>
-                    <tr style="background-color: var(--primary); color: white; text-align: left;">
-                        <th style="padding: 10px; border-bottom: 2px solid var(--primary-dark);">ID</th>
-                        <th style="padding: 10px; border-bottom: 2px solid var(--primary-dark);">Nombre</th>
-                        <th style="padding: 10px; border-bottom: 2px solid var(--primary-dark);">Precio</th>
-                        <th style="padding: 10px; border-bottom: 2px solid var(--primary-dark);">Duración (días)</th>
-                        <th style="padding: 10px; border-bottom: 2px solid var(--primary-dark);">Acción</th>
-                    </tr>
-                </thead>
-                <tbody id="planes-listado">
-                    <!-- Los planes se cargarán dinámicamente aquí -->
-                </tbody>
-            </table>
+        <section id="editar-planes" class="planes-section">
+            <h3>Editar Planes</h3>
+            <div class="planes-table-container">
+                <table class="planes-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Precio</th>
+                            <th>Duración (días)</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="planes-listado">
+                        <!-- Los planes se cargarán dinámicamente aquí -->
+                    </tbody>
+                </table>
+            </div>
         </section>
     </div>
 
