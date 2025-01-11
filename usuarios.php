@@ -343,19 +343,14 @@ if (!isset($_SESSION['admin_id'])) {
                                     <div class="form-group">
                                         <label for="anadirPlan">Plan</label>
                                         <select class="form-control form-control-lg" id="anadirPlan" name="plan" required>
-                                            <option value="Básico" selected>Básico</option>
-                                            <option value="Premium">Premium</option>
-                                            <option value="VIP">VIP</option>
+                                            <option value="">Cargando planes...</option>
                                         </select>
                                     </div>
                                     <div class="form-group">
                                         <label for="anadirDiaVencimiento">Día de Vencimiento</label>
                                         <input type="number" class="form-control form-control-lg" id="anadirDiaVencimiento" name="dia_vencimiento" min="1" max="31" required>
                                     </div>
-                                    <!--div class="form-group">
-                                        <label for="anadirDeuda">Deuda (AR$)</label>
-                                        <input type="number" class="form-control form-control-lg" id="anadirDeuda" name="deuda" value="0.00" step="0.01" required>
-                                    </div -->
+                                    
                                     <div class="form-group">
                                         <label for="anadirFoto">Foto</label>
                                         <input type="file" class="form-control-file" id="anadirFoto" name="foto" accept="image/*" capture="camera">
@@ -408,9 +403,7 @@ if (!isset($_SESSION['admin_id'])) {
                                     <div class="form-group">
                                         <label for="editarPlan">Plan</label>
                                         <select class="form-control form-control-lg" id="editarPlan" name="plan" required>
-                                            <option value="Básico">Básico</option>
-                                            <option value="Premium">Premium</option>
-                                            <option value="VIP">VIP</option>
+                                            <option value="">Cargando planes...</option>
                                         </select>
                                     </div>
                                     <div class="form-group">
@@ -688,6 +681,47 @@ if (!isset($_SESSION['admin_id'])) {
                                     }
                                 });
             });
+
+
+
+            fetch('api_usuarios.php?action=planes')
+        .then(response => response.json())
+        .then(data => {
+            const anadirPlanSelect = document.getElementById('anadirPlan');
+            const editarPlanSelect = document.getElementById('editarPlan');
+            anadirPlanSelect.innerHTML = ''; // Limpiar opciones actuales
+            editarPlanSelect.innerHTML = ''; // Limpiar opciones actuales
+
+            if (data.planes && data.planes.length > 0) {
+                // Llenar ambos selects con los planes obtenidos
+                data.planes.forEach(plan => {
+                    const option1 = document.createElement('option');
+                    option1.value = plan.nombre;
+                    option1.textContent = plan.nombre;
+                    anadirPlanSelect.appendChild(option1);
+
+                    const option2 = document.createElement('option');
+                    option2.value = plan.nombre;
+                    option2.textContent = plan.nombre;
+                    editarPlanSelect.appendChild(option2);
+                });
+            } else {
+                // Si no hay planes disponibles
+                const noPlanesOption = document.createElement('option');
+                noPlanesOption.value = "";
+                noPlanesOption.textContent = 'No hay planes disponibles';
+                anadirPlanSelect.appendChild(noPlanesOption.cloneNode(true));
+                editarPlanSelect.appendChild(noPlanesOption);
+            }
+        })
+        .catch(error => {
+            console.error('Error al cargar planes:', error);
+            const errorOption = document.createElement('option');
+            errorOption.value = '';
+            errorOption.textContent = 'Error al cargar planes';
+            document.getElementById('anadirPlan').appendChild(errorOption.cloneNode(true));
+            document.getElementById('editarPlan').appendChild(errorOption);
+        });
 
         </script>
 
